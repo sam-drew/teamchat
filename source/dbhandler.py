@@ -18,14 +18,12 @@ def addUser(email, name, password, salt):
         with connection.cursor() as cursor:
             # Insert new record, ID is blank as is self incrementing
             sql = "INSERT INTO 'users' ('email', 'name', 'password', 'salt') VALUES ({0}, {1}, {2}, {3})"
-            cursor.execute((sql.format(email, name, password, salt)
+            cursor.execute((sql.format(email, name, password, salt)))
         # Commit the changes made to the DB
         connection.commit()
-
     # Handle any errors on MySQL's part
-    except MySQLError as e:
+except MySQLError as e:
         return("Error: {0}. Error code is {1}".format(e, e.args[0]))
-
     finally:
         connection.close()
 
@@ -35,9 +33,7 @@ def checkEmail(email):
         with connection.cursor() as cursor:
             sql = ("SELECT 'email' FROM 'users' WHERE 'email' = {}")
             return(cursor.execute(sql.format(email)))
-            
-    except:
-        return("Error")
-
+    except MySQLError as e:
+        return("Error: {0}. Error code is {1}".format(e, e.args[0]))
     finally:
         connection.close()
