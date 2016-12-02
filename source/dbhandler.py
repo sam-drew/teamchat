@@ -26,7 +26,7 @@ def addUser(email, name, password, salt):
         # Commit the changes made to the DB
         connection.commit()
     # Handle any errors on MySQL's part
-except MySQLError as e:
+    except MySQLError as e:
         return("Error: {0}. Error code is {1}".format(e, e.args[0]))
     finally:
         connection.close()
