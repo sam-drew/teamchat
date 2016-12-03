@@ -2,14 +2,15 @@ import pymysql
 
 # Initialise the connection with the DB
 try:
+    connection = None
     connection = pymysql.connect(host = "host",
                                 user = "user",
                                 password = "password",
                                 db = "db",
                                 charset = "utf8mb4",
                                 cursorclass = pymysql.cursors.DictCursor)
-except:
-    print("Connection error, check network status, credentials, & dependancies")
+except MySQLError as e:
+    return("Error: {0}. Error code is {1}".format(e, e.args[0]))
 
 # Function to add new user
 def addUser(email, name, password, salt):
@@ -33,6 +34,19 @@ def checkEmail(email):
         with connection.cursor() as cursor:
             sql = ("SELECT 'email' FROM 'users' WHERE 'email' = {}")
             return(cursor.execute(sql.format(email)))
+    except MySQLError as e:
+        return("Error: {0}. Error code is {1}".format(e, e.args[0]))
+    finally:
+        connection.close()
+
+# Function to get the login information of a given account
+def getLogin(email):
+    try:
+        with connection.cursor() as cursor:
+            sql = ("SELECT 'password', 'salt' FROM 'users' WHERE 'email' = {}")
+            cursor.execute(sql.format(email))
+            results = cursor.fetchone()
+            return(results)
     except MySQLError as e:
         return("Error: {0}. Error code is {1}".format(e, e.args[0]))
     finally:
