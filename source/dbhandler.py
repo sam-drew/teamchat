@@ -1,5 +1,8 @@
 import pymysql
 
+# Take the 'addUser' function as the example code structure (with comments) for
+# all connections using PyMySQL, with regard to asigning cursors etc.
+
 # Initialise the connection with the DB
 try:
     connection = None
