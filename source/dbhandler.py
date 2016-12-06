@@ -112,7 +112,11 @@ def checkChatPrivileges(userID, chatID):
     try:
         with connection.cursor() as cursor:
             sql = ("SELECT 'ID' FROM 'members' WHERE 'userID' = {0} AND 'chatID' = {1}")
-            return(cursor.execute(sql.format(userID, chatID)))
+            cursor.execute(sql.format(userID, chatID))
+            if cursor.fetchone() == True:
+                return(cursor.fetchone())
+            else:
+                return(False)
     except MySQLError as e:
         return("Error: {0}. Error code is {1}".format(e, e.args[0]))
     finally:
@@ -121,7 +125,7 @@ def checkChatPrivileges(userID, chatID):
 # Function to get a user's name by their userID
 def getUserName(userID):
     try:
-        with connection.cursor as cursor:
+        with connection.cursor() as cursor:
             sql = ("SELECT 'name' FROM 'users' WHERE 'ID' = {0}")
             cursor.execute(sql.format(userID))
             name = cursor.fetchone()
@@ -134,7 +138,7 @@ def getUserName(userID):
 # Function to get the name of a chat
 def getChatName(chatID):
     try:
-        with connection.cursor as cursor:
+        with connection.cursor() as cursor:
             sql = ("SELECT 'name' FROM 'chats' WHERE 'ID' = {0}")
             cursor.execute(sql.format(chatID))
             name = cursor.fetchone()
@@ -147,6 +151,8 @@ def getRecentMessages(chatID, userID):
     try:
         # Use checkChatPrivileges to see if user is allowed to access specified chat
         if checkChatPrivileges(userID, chatID) == True:
-            pass
+            try:
+                with connection.cursor() as cursor:
+                    sql = ("SELECT ''")
     except Exception as e:
         return("Error: {0}. Error code is {1}".format(e, e.args[0]))
