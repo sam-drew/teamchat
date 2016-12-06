@@ -31,12 +31,13 @@ def addUser(email, name, password, salt):
     finally:
         connection.close()
 
-# Function to check if the new sign-up's email is already in use
+# Function to check if the new sign-up's email is already in use, returns False
+# if not in use
 def checkEmail(email):
     try:
         with connection.cursor() as cursor:
             sql = ("SELECT 'email' FROM 'users' WHERE 'email' = {}")
-            return(cursor.execute(sql.format(email)))
+            return(not(cursor.execute(sql.format(email))))
     except MySQLError as e:
         return("Error: {0}. Error code is {1}".format(e, e.args[0]))
     finally:
@@ -56,12 +57,12 @@ def getLogin(email):
         connection.close()
 
 # Function to add new message
-def addMessage(user, chat, content):
+def addMessage(userID, chatID, content):
     try:
         with connection.cursor() as cursor:
             # Get the memberID of the related user and chat
             sql = ("SELECT 'ID' FROM 'members' WHERE 'userID' = {0} AND 'chatID' = {1}")
-            cursor.execute(sql.format(user, chat))
+            cursor.execute(sql.format(userID, chatID))
             memberID = cursor.fetchone()
             # Insert new entry into the messages table with the memberID and message content
             sql = ("INSERT INTO 'messages' ('content', 'memberID') VALUES ({0}, {1})")
@@ -74,7 +75,7 @@ def addMessage(user, chat, content):
 
 # Function to set user privileges. Input user will be the userID, Input
 # chats will be a dict defined as chatID: admin? where admin is boolean
-def setPrivileges(user, chats):
+def setPrivileges(userID, chats):
     try:
         with connection.cursor() as cursor:
             # Iterate over the keys in the dict
@@ -83,10 +84,24 @@ def setPrivileges(user, chats):
                 # insert a record to reflect this, else omit 'admin' value
                 if chats[chatID] == True:
                     sql = ("INSERT INTO 'members' ('chatID', 'userID', 'admin') VALUES ({0}, {1}, {2})")
-                    cursor.execute(sql.format(chatID, user, True))
+                    cursor.execute(sql.format(chatID, userID, True))
                 else:
                     sql = ("INSERT INTO 'members' ('chatID', 'userID') VALUES ({0}, {1})")
-                    cursor.execute(sql.format(chatID, user))
+                    cursor.execute(sql.format(chatID, userID))
+        connection.commit()
+    except MySQLError as e:
+        return("Error: {0}. Error code is {1}".format(e, e.args[0]))
+    finally:
+        connection.close()
+
+# Function to check if a user has admin privileges, returns True if true
+def checkAdmin(userID, chatID):
+    try:
+        with connection.cursor() as cursor:
+            sql = ("SELECT 'admin' FROM 'members' WHERE 'userID' = {0} AND 'chatID' = {1}")
+            cursor.execute(sql.format(userID, chatID))
+            result = cursor.fetchone()
+            return(result)
         connection.commit()
     except MySQLError as e:
         return("Error: {0}. Error code is {1}".format(e, e.args[0]))
