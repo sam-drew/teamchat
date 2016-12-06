@@ -107,3 +107,14 @@ def checkAdmin(userID, chatID):
         return("Error: {0}. Error code is {1}".format(e, e.args[0]))
     finally:
         connection.close()
+
+# Function to check if a user has the the correct privileges to message a chat
+def checkChatPrivileges(userID, chatID):
+    try:
+        with connection.cursor() as cursor:
+            sql = ("SELECT 'ID' FROM 'members' WHERE 'userID' = {0} AND 'chatID' = {1}")
+            return(cursor.execute(sql.format(userID, chatID)))
+    except MySQLError as e:
+        return("Error: {0}. Error code is {1}".format(e, e.args[0]))
+    finally:
+        connection.close()
