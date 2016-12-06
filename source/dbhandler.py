@@ -16,7 +16,7 @@ except MySQLError as e:
     return("Error: {0}. Error code is {1}".format(e, e.args[0]))
 
 # Function to add new user
-def addUserInfo(email, name, password, salt):
+def setUserInfo(email, name, password, salt):
     try:
         # Initialise the cursor, which is used to perform tasks on the DB
         with connection.cursor() as cursor:
@@ -57,7 +57,7 @@ def getLogin(email):
         connection.close()
 
 # Function to add new message
-def addMessage(userID, chatID, content):
+def setMessage(userID, chatID, content):
     try:
         with connection.cursor() as cursor:
             # Get the memberID of the related user and chat
@@ -113,7 +113,7 @@ def checkChatPrivileges(userID, chatID):
         with connection.cursor() as cursor:
             sql = ("SELECT 'ID' FROM 'members' WHERE 'userID' = {0} AND 'chatID' = {1}")
             cursor.execute(sql.format(userID, chatID))
-            if cursor.fetchone() == True:
+            if cursor != False:
                 return(cursor.fetchone())
             else:
                 return(False)
@@ -146,11 +146,23 @@ def getChatName(chatID):
     except MySQLError as e:
         return("Error: {0}. Error code is {1}".format(e, e.args[0]))
 
+# Function to get the all the memberID's associated with a chat
+def getMemberIDs(chatID):
+    try:
+        with connection.cursor() as cursor:
+            sql = ("SELECT 'ID' FROM 'members' WHERE 'chatID' = {0}")
+            cursor.execute(sql.format(chatID))
+            memberIDs = cursor.fetchall()
+            return(memberIDs)
+    except MySQLError as e:
+        return("Error: {0}. Error code is {1}".format(e, e.args[0]))
+
 # Function to return the last n messages sent in a chat
 def getRecentMessages(chatID, userID):
     try:
         # Use checkChatPrivileges to see if user is allowed to access specified chat
-        if checkChatPrivileges(userID, chatID) == True:
+        memberID = checkChatPrivileges(userID, chatID)
+        if memberID != False:
             try:
                 with connection.cursor() as cursor:
                     sql = ("SELECT ''")
