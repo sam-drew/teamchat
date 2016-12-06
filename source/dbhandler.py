@@ -16,7 +16,7 @@ except MySQLError as e:
     return("Error: {0}. Error code is {1}".format(e, e.args[0]))
 
 # Function to add new user
-def addUser(email, name, password, salt):
+def addUserInfo(email, name, password, salt):
     try:
         # Initialise the cursor, which is used to perform tasks on the DB
         with connection.cursor() as cursor:
@@ -102,7 +102,6 @@ def checkAdmin(userID, chatID):
             cursor.execute(sql.format(userID, chatID))
             result = cursor.fetchone()
             return(result)
-        connection.commit()
     except MySQLError as e:
         return("Error: {0}. Error code is {1}".format(e, e.args[0]))
     finally:
@@ -118,3 +117,36 @@ def checkChatPrivileges(userID, chatID):
         return("Error: {0}. Error code is {1}".format(e, e.args[0]))
     finally:
         connection.close()
+
+# Function to get a user's name by their userID
+def getUserName(userID):
+    try:
+        with connection.cursor as cursor:
+            sql = ("SELECT 'name' FROM 'users' WHERE 'ID' = {0}")
+            cursor.execute(sql.format(userID))
+            name = cursor.fetchone()
+            return(name)
+    except MySQLError as e:
+        return("Error: {0}. Error code is {1}".format(e, e.args[0]))
+    finally:
+        connection.close()
+
+# Function to get the name of a chat
+def getChatName(chatID):
+    try:
+        with connection.cursor as cursor:
+            sql = ("SELECT 'name' FROM 'chats' WHERE 'ID' = {0}")
+            cursor.execute(sql.format(chatID))
+            name = cursor.fetchone()
+            return(name)
+    except MySQLError as e:
+        return("Error: {0}. Error code is {1}".format(e, e.args[0]))
+
+# Function to return the last n messages sent in a chat
+def getRecentMessages(chatID, userID):
+    try:
+        # Use checkChatPrivileges to see if user is allowed to access specified chat
+        if checkChatPrivileges(userID, chatID) == True:
+            pass
+    except Exception as e:
+        return("Error: {0}. Error code is {1}".format(e, e.args[0]))
