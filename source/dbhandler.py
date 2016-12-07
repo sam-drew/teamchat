@@ -145,6 +145,8 @@ def getChatName(chatID):
             return(name)
     except MySQLError as e:
         return("Error: {0}. Error code is {1}".format(e, e.args[0]))
+    finally:
+        connection.close()
 
 # Function to get the all the memberID's associated with a chat
 def getMemberIDs(chatID):
@@ -156,6 +158,8 @@ def getMemberIDs(chatID):
             return(memberIDs)
     except MySQLError as e:
         return("Error: {0}. Error code is {1}".format(e, e.args[0]))
+    finally:
+        connection.close()
 
 # Function to return the last n messages sent in a chat
 def getRecentMessages(chatID, userID):
@@ -165,6 +169,20 @@ def getRecentMessages(chatID, userID):
         if memberID != False:
             try:
                 with connection.cursor() as cursor:
-                    sql = ("SELECT ''")
+                    # Get all the memberID's associated with that chat, to
+                    # search the table for all messages to that chat
+                    allMembers = getMemberIDs(chatID)
+                    # Select the 25 most recent entries to the table where the
+                    # memberID is of allMembers list
+                    sql = ("SELECT 'ID', 'content', 'ts', 'memberID' FROM 'messages' WHERE 'memberID' = {0} ORDER BY 'ID' DESC LIMIT 25")
+                    cursor.execute((sql.format(allMembers).replace("[", "").replace("]", "")))
+                    messages = cursor.fetchall()
+                    return(messages)
+            except MySQLError as e:
+                return("Error: {0}. Error code is {1}".format(e, e.args[0]))
+            finally:
+                connection.close()
+        else:
+            return(False)
     except Exception as e:
         return("Error: {0}. Error code is {1}".format(e, e.args[0]))
