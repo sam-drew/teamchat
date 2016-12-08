@@ -71,3 +71,24 @@ def addMessage(user, chat, content):
         return("Error: {0}. Error code is {1}".format(e, e.args[0]))
     finally:
         connection.close()
+
+# Function to set user privileges. Input user will be the userID, Input
+# chats will be a dict defined as chatID: admin? where admin is boolean
+def setPrivileges(user, chats):
+    try:
+        with connection.cursor() as cursor:
+            # Iterate over the keys in the dict
+            for chatID in chats:
+                # If the key's value is True (i.e. they are admin of that chat),
+                # insert a record to reflect this, else omit 'admin' value
+                if chats[chatID] == True:
+                    sql = ("INSERT INTO 'members' ('chatID', 'userID', 'admin') VALUES ({0}, {1}, {2})")
+                    cursor.execute(sql.format(chatID, user, True))
+                else:
+                    sql = ("INSERT INTO 'members' ('chatID', 'userID') VALUES ({0}, {1})")
+                    cursor.execute(sql.format(chatID, user))
+        connection.commit()
+    except MySQLError as e:
+        return("Error: {0}. Error code is {1}".format(e, e.args[0]))
+    finally:
+        connection.close()
