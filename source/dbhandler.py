@@ -21,8 +21,8 @@ def addUser(email, name, password, salt):
         # Initialise the cursor, which is used to perform tasks on the DB
         with connection.cursor() as cursor:
             # Insert new record, ID is blank as is self incrementing
-            sql = "INSERT INTO 'users' ('email', 'name', 'password', 'salt') VALUES ({0}, {1}, {2}, {3})"
-            cursor.execute((sql.format(email, name, password, salt)))
+            sql = ("INSERT INTO 'users' ('email', 'name', 'password', 'salt') VALUES ({0}, {1}, {2}, {3})")
+            cursor.execute(sql.format(email, name, password, salt))
         # Commit the changes made to the DB
         connection.commit()
     # Handle any errors on MySQL's part
@@ -50,6 +50,23 @@ def getLogin(email):
             cursor.execute(sql.format(email))
             results = cursor.fetchone()
             return(results)
+    except MySQLError as e:
+        return("Error: {0}. Error code is {1}".format(e, e.args[0]))
+    finally:
+        connection.close()
+
+# Function to add new message
+def addMessage(user, chat, content):
+    try:
+        with connection.cursor() as cursor:
+            # Get the memberID of the related user and chat
+            sql = ("SELECT 'ID' FROM 'members' WHERE 'userID' = {0} AND 'chatID' = {1}")
+            cursor.execute(sql.format(user, chat))
+            memberID = cursor.fetchone()
+            # Insert new entry into the messages table with the memberID and message content
+            sql = ("INSERT INTO 'messages' ('content', 'memberID') VALUES ({0}, {1})")
+            cursor.execute(sql.format(content, memberID))
+        connection.commit()
     except MySQLError as e:
         return("Error: {0}. Error code is {1}".format(e, e.args[0]))
     finally:
