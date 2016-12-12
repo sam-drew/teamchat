@@ -15,7 +15,7 @@ try:
 except MySQLError as e:
     return("Error: {0}. Error code is {1}".format(e, e.args[0]))
 
-# Function to add new user
+# Function to set user information
 def setUserInfo(email, name, password, salt):
     try:
         # Initialise the cursor, which is used to perform tasks on the DB
@@ -95,12 +95,12 @@ def setPrivileges(userID, chats):
         connection.close()
 
 # Function to check if a user has admin privileges, returns True if true
-def checkAdmin(userID, chatID):
+def checkAdmin(userID):
     try:
         with connection.cursor() as cursor:
-            sql = ("SELECT 'admin' FROM 'members' WHERE 'userID' = {0} AND 'chatID' = {1}")
+            sql = ("SELECT 'admin' FROM 'members' WHERE 'userID' = {0}")
             cursor.execute(sql.format(userID, chatID))
-            result = cursor.fetchone()
+            result = cursor.fetchall()
             return(result)
     except MySQLError as e:
         return("Error: {0}. Error code is {1}".format(e, e.args[0]))
@@ -161,6 +161,19 @@ def getMemberIDs(chatID):
     finally:
         connection.close()
 
+# Function to get the userID of a given email address
+def getUserID(email):
+    try:
+        with connection.cursor() as cursor:
+            sql = ("SELECT 'ID' FROM 'users' WHERE 'email' = {0}")
+            cursor.execute(sql.format(email))
+            userID = cursor.fetchone()
+            return(userID)
+    except MySQLError as e:
+        return("Error: {0}. Error code is {1}".format(e, e.args[0]))
+    finally:
+        connection.close()
+
 # Function to return the last n messages sent in a chat
 def getRecentMessages(chatID, userID):
     try:
@@ -184,5 +197,25 @@ def getRecentMessages(chatID, userID):
                 connection.close()
         else:
             return(False)
+    except Exception as e:
+        return("Error: {0}. Error code is {1}".format(e, e.args[0]))
+
+# Function to add new user to database
+def addNewUser(userID, email, name, password, salt, chats):
+    try:
+        chatPrivs = checkChatPrivileges(userID, chatID)
+        if chatPrivs != False:
+            isAdmin = checkAdmin(userID)
+            if isAdmin == True:
+                setUserInfo(email, name, password, salt)
+                if len(chats) > 0:
+                    newUserID = getUserID(email)
+                    setPrivileges(newUserID, chats)
+                else:
+                    return("No chats specified, user is a member of 0 chats")
+            else:
+                return(isAdmin)
+        else:
+            return(chatPrivs)
     except Exception as e:
         return("Error: {0}. Error code is {1}".format(e, e.args[0]))
