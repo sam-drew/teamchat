@@ -36,7 +36,7 @@ def setUserInfo(email, name, password, salt):
 def checkEmail(email):
     try:
         with connection.cursor() as cursor:
-            sql = ("SELECT 'email' FROM 'users' WHERE 'email' = {}")
+            sql = ("SELECT 'email' FROM 'users' WHERE 'email' = {0}")
             return(not(cursor.execute(sql.format(email))))
     except MySQLError as e:
         return("Error: {0}. Error code is {1}".format(e, e.args[0]))
@@ -47,10 +47,13 @@ def checkEmail(email):
 def getLogin(email):
     try:
         with connection.cursor() as cursor:
-            sql = ("SELECT 'password', 'salt' FROM 'users' WHERE 'email' = {}")
-            cursor.execute(sql.format(email))
-            results = cursor.fetchone()
-            return(results)
+            sql = ("SELECT 'password', 'salt' FROM 'users' WHERE 'email' = {0}")
+            returnValue = cursor.execute(sql.format(email))
+            if returnValue == True:
+                results = cursor.fetchone()
+                return(results)
+            else:
+                return(False)
     except MySQLError as e:
         return("Error: {0}. Error code is {1}".format(e, e.args[0]))
     finally:
