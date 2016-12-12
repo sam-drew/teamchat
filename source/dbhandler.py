@@ -59,17 +59,18 @@ def getLogin(email):
     finally:
         connection.close()
 
-# Function to add new message
+# Function to set a new message in the database
 def setMessage(userID, chatID, content):
     try:
         with connection.cursor() as cursor:
             # Get the memberID of the related user and chat
-            sql = ("SELECT 'ID' FROM 'members' WHERE 'userID' = {0} AND 'chatID' = {1}")
-            cursor.execute(sql.format(userID, chatID))
-            memberID = cursor.fetchone()
-            # Insert new entry into the messages table with the memberID and message content
-            sql = ("INSERT INTO 'messages' ('content', 'memberID') VALUES ({0}, {1})")
-            cursor.execute(sql.format(content, memberID))
+            memberID = checkChatPrivileges(userID, chatID)
+            if memberID != False:
+                # Insert new entry into the messages table with the memberID and message content
+                sql = ("INSERT INTO 'messages' ('content', 'memberID') VALUES ({0}, {1})")
+                cursor.execute(sql.format(content, memberID))
+            else:
+                return(False)
         connection.commit()
     except MySQLError as e:
         return("Error: {0}. Error code is {1}".format(e, e.args[0]))
