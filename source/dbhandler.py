@@ -69,6 +69,7 @@ def setMessage(userID, chatID, content):
                 # Insert new entry into the messages table with the memberID and message content
                 sql = ("INSERT INTO 'messages' ('content', 'memberID') VALUES ({0}, {1})")
                 cursor.execute(sql.format(content, memberID))
+                return(True)
             else:
                 return(False)
         connection.commit()
@@ -191,7 +192,7 @@ def getRecentMessages(chatID, userID):
                     allMembers = getMemberIDs(chatID)
                     # Select the 25 most recent entries to the table where the
                     # memberID is of allMembers list
-                    sql = ("SELECT 'ID', 'content', 'ts', 'memberID' FROM 'messages' WHERE 'memberID' = {0} ORDER BY 'ID' DESC LIMIT 25")
+                    sql = ("SELECT 'ID', 'content', 'ts', 'memberID' FROM 'messages' WHERE 'memberID' IN ({0}) ORDER BY 'ID' DESC LIMIT 25")
                     cursor.execute((sql.format(allMembers).replace("[", "").replace("]", "")))
                     messages = cursor.fetchall()
                     return(messages)
