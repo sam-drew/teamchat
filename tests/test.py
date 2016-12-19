@@ -1,4 +1,5 @@
 import unittest
+
 import dbhandler
 
 class TestDBHandler(unittest.TestCase):
@@ -9,6 +10,6 @@ class TestDBHandler(unittest.TestCase):
 
     def test_GetLogin(self):
         self.assertEqual(["PASSWORD", "SALT"], dbhandler.checkEmail("james@email.com"))
-        
+
 if __name__ == "__main__":
     unittest.main()
