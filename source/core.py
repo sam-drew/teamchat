@@ -2,6 +2,7 @@ import tornado.ioloop
 import tornado.web
 
 import os.path
+import bcrypt
 
 import dbhandler
 
@@ -23,8 +24,7 @@ class LoginHandler(BaseHandler):
         self.render("login.html")
 
     def post(self):
-        email = self.get_argument("user")
-        pwd = self.get_argument("password")
+        hashedPass
         self.clear_secure_cookie("user")
         self.set_secure_cookie("user", self.get_argument("user"))
         self.redirect("/")
@@ -34,6 +34,13 @@ class LogoutHandler(BaseHandler):
     def post(self):
         self.clear_cookie("user")
         self.redirect("/login")
+
+# Function to hash a password supplied by the client and the salt retrieved
+def hashPwd(pwd, salt):
+    pwd = bytes(pwd, "ascii")
+    salt = bytes(salt, "ascii")
+    hashed = bcrypt.hashpw(pwd, salt)
+    return(hashed)
 
 # Initialise the application
 app = tornado.web.Application(
