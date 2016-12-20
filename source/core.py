@@ -24,19 +24,22 @@ class LoginHandler(BaseHandler):
         self.render("login.html")
 
     def post(self):
+        # Get the password info from the database
         info = dbhandler.getLogin(self.get_argument("user"))
-        print(self.get_argument("user"))
-        pwd = info['password']
-        salt = info['salt']
-        pwd = bytes(pwd, "ascii")
-        userpass = self.get_argument("password")
-        hasheduserpass = hashPwd(userpass, salt)
-        if hasheduserpass == pwd:
-            self.set_secure_cookie("user", self.get_argument("user"))
-            self.redirect("/")
+        if info != False:
+            pwd = info['password']
+            salt = info['salt']
+            pwd = bytes(pwd, "ascii")
+            userpass = self.get_argument("password")
+            hasheduserpass = hashPwd(userpass, salt)
+            if hasheduserpass == pwd:
+                self.set_secure_cookie("user", self.get_argument("user"))
+                self.redirect("/")
+            else:
+                self.write("Incorrect user name or password")
         else:
-            self.redirect("/login")
-
+            self.write("Incorrect user name or password")
+            
 # Class to handle logging out
 class LogoutHandler(BaseHandler):
     def post(self):
