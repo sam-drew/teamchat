@@ -4,19 +4,21 @@ import pymysql
 # all connections using PyMySQL, with regard to asigning cursors etc.
 
 # Initialise the connection with the DB
-try:
-    connection = None
-    connection = pymysql.connect(host = "host",
-                                user = "user",
-                                password = "password",
-                                db = "db",
-                                charset = "utf8mb4",
-                                cursorclass = pymysql.cursors.DictCursor)
-except MySQLError as e:
-    return("Error: {0}. Error code is {1}".format(e, e.args[0]))
+def makeConnection():
+    try:
+            connection = None
+            connection = pymysql.connect(host = "database.c5kykvy3xul6.eu-west-1.rds.amazonaws.com",
+                                        user = "master",
+                                        password = "password",
+                                        db = "comsciproj",
+                                        charset = "utf8mb4",
+                                        cursorclass = pymysql.cursors.DictCursor)
+    except MySQLError as e:
+        print("Error: {0}. Error code is {1}".format(e, e.args[0]))
 
 # Function to set user information
 def setUserInfo(email, name, password, salt):
+    makeConnection()
     try:
         # Initialise the cursor, which is used to perform tasks on the DB
         with connection.cursor() as cursor:
@@ -34,6 +36,7 @@ def setUserInfo(email, name, password, salt):
 # Function to check if the new sign-up's email is already in use, returns False
 # if not in use
 def checkEmail(email):
+    makeConnection()
     try:
         with connection.cursor() as cursor:
             sql = ("SELECT 'email' FROM 'users' WHERE 'email' = {0}")
@@ -45,6 +48,7 @@ def checkEmail(email):
 
 # Function to get the login information of a given account
 def getLogin(email):
+    makeConnection()
     try:
         with connection.cursor() as cursor:
             sql = ("SELECT 'password', 'salt' FROM 'users' WHERE 'email' = {0}")
@@ -61,6 +65,7 @@ def getLogin(email):
 
 # Function to set a new message in the database
 def setMessage(userID, chatID, content):
+    makeConnection()
     try:
         with connection.cursor() as cursor:
             # Get the memberID of the related user and chat
@@ -81,6 +86,7 @@ def setMessage(userID, chatID, content):
 # Function to set user privileges. Input user will be the userID, Input
 # chats will be a dict defined as chatID: admin? where admin is boolean
 def setPrivileges(userID, chats):
+    makeConnection()
     try:
         with connection.cursor() as cursor:
             # Iterate over the keys in the dict
@@ -101,6 +107,7 @@ def setPrivileges(userID, chats):
 
 # Function to check if a user has admin privileges, returns True if true
 def checkAdmin(userID):
+    makeConnection()
     try:
         with connection.cursor() as cursor:
             sql = ("SELECT 'admin' FROM 'members' WHERE 'userID' = {0}")
@@ -114,6 +121,7 @@ def checkAdmin(userID):
 
 # Function to check if a user has the the correct privileges to message a chat
 def checkChatPrivileges(userID, chatID):
+    makeConnection()
     try:
         with connection.cursor() as cursor:
             sql = ("SELECT 'ID' FROM 'members' WHERE 'userID' = {0} AND 'chatID' = {1}")
@@ -129,6 +137,7 @@ def checkChatPrivileges(userID, chatID):
 
 # Function to get a user's name by their userID
 def getUserName(userID):
+    makeConnection()
     try:
         with connection.cursor() as cursor:
             sql = ("SELECT 'name' FROM 'users' WHERE 'ID' = {0}")
@@ -142,6 +151,7 @@ def getUserName(userID):
 
 # Function to get the name of a chat
 def getChatName(chatID):
+    makeConnection()
     try:
         with connection.cursor() as cursor:
             sql = ("SELECT 'name' FROM 'chats' WHERE 'ID' = {0}")
@@ -155,6 +165,7 @@ def getChatName(chatID):
 
 # Function to get the all the memberID's associated with a chat
 def getMemberIDs(chatID):
+    makeConnection()
     try:
         with connection.cursor() as cursor:
             sql = ("SELECT 'ID' FROM 'members' WHERE 'chatID' = {0}")
@@ -168,6 +179,7 @@ def getMemberIDs(chatID):
 
 # Function to get the userID of a given email address
 def getUserID(email):
+    makeConnection()
     try:
         with connection.cursor() as cursor:
             sql = ("SELECT 'ID' FROM 'users' WHERE 'email' = {0}")
@@ -181,6 +193,7 @@ def getUserID(email):
 
 # Function to return the last n messages sent in a chat
 def getRecentMessages(chatID, userID):
+    makeConnection()
     try:
         # Use checkChatPrivileges to see if user is allowed to access specified chat
         memberID = checkChatPrivileges(userID, chatID)
@@ -207,6 +220,7 @@ def getRecentMessages(chatID, userID):
 
 # Function to add new user to database
 def addNewUser(userID, email, name, password, salt, chats):
+    makeConnection()
     try:
         chatPrivs = checkChatPrivileges(userID, chatID)
         if chatPrivs != False:
