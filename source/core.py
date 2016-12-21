@@ -1,5 +1,6 @@
 import tornado.ioloop
 import tornado.web
+from tornado.log import enable_pretty_logging
 
 import os.path
 import bcrypt
@@ -39,7 +40,7 @@ class LoginHandler(BaseHandler):
                 self.write("Incorrect user name or password")
         else:
             self.write("Incorrect user name or password")
-            
+
 # Class to handle logging out
 class LogoutHandler(BaseHandler):
     def post(self):
@@ -54,6 +55,7 @@ def hashPwd(pwd, salt):
     return(hashed)
 
 # Initialise the application
+enable_pretty_logging()
 app = tornado.web.Application(
     [(r"/", RootHandler), (r"/login", LoginHandler), (r"/logout", LogoutHandler),],
     # Set the path where tornado will find the html templates
