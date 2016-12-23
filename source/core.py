@@ -9,7 +9,7 @@ import dbhandler
 
 class BaseHandler(tornado.web.RequestHandler):
     def get_current_user(self):
-        return self.get_secure_cookie("user")
+        return self.get_secure_cookie("email")
 
 # Class to handle all requests to the root of the website URL
 class RootHandler(BaseHandler):
@@ -50,7 +50,12 @@ class HomeHandler(BaseHandler):
         if not self.get_secure_cookie("email"):
             self.redirect("/login")
             return
-        self.render("home.html", email = self.get_secure_cookie("email"))
+        else:
+            userEmail = self.get_secure_cookie("email")
+            userID = dbhandler.getUserID(userEmail)
+            chatNames = dbhandler.getChats(userID)
+            self.render("home.html", email = userEmail)
+
 
 # Function to hash a password supplied by the client and the salt retrieved
 def hashPwd(pwd, salt):
@@ -62,7 +67,7 @@ def hashPwd(pwd, salt):
 # Initialise the application
 enable_pretty_logging()
 app = tornado.web.Application(
-    [(r"/", RootHandler), (r"/login", LoginHandler), (r"/logout", LogoutHandler),],
+    [(r"/", RootHandler), (r"/login", LoginHandler), (r"/logout", LogoutHandler), (r"/home", HomeHandler),],
     # Set the path where tornado will find the html templates
     template_path = os.path.join(os.path.dirname(__file__), "templates"),
     cookie_secret = "secret",
