@@ -233,6 +233,23 @@ def getUserID(email):
     finally:
         connection.close()
 
+def getChats(userID):
+    try:
+        connection = pymysql.connect(host = "database.c5kykvy3xul6.eu-west-1.rds.amazonaws.com",
+                                    user = "master",
+                                    password = "password",
+                                    db = "comsciproj",
+                                    charset = "utf8mb4",
+                                    cursorclass = pymysql.cursors.DictCursor)
+        with connection.cursor() as cursor:
+            sql = ("SELECT chats.name FROM chats INNER JOIN members ON chats.ID = members.chatID WHERE userID = {0}")
+            cursor.execute(sql.format(userID))
+            return(cursor.fetchall())
+    except Exception as e:
+        return("Error: {0}. Error code is {1}".format(e, e.args[0]))
+    finally:
+        connection.close()
+        
 # Function to return the last n messages sent in a chat
 def getRecentMessages(chatID, userID):
     try:
