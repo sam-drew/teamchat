@@ -51,10 +51,14 @@ class HomeHandler(BaseHandler):
             self.redirect("/login")
             return
         else:
-            userEmail = self.get_secure_cookie("email")
-            userID = dbhandler.getUserID(userEmail)
+            userEmail = (self.get_secure_cookie("email").decode("utf-8"))
+            userID = dbhandler.getUserID(userEmail)['ID']
             chatNames = dbhandler.getChats(userID)
-            self.render("home.html", email = userEmail)
+            temp = []
+            for i in chatNames:
+                temp.append(i['name'])
+            chatNames = temp
+            self.render("home.html", email = userEmail, chats = chatNames)
 
 
 # Function to hash a password supplied by the client and the salt retrieved

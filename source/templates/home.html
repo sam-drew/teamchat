@@ -11,9 +11,11 @@
         </p>
     </div>
     <div>
-        {% for chat in chats %}
-            {% module Template("chatlistitem.html", chat = chat) %}
-        {% end %}
+        <ul>
+            {% for chat in chats %}
+                <li>{{ chat }}</li>
+            {% end %}
+        </ul>
     <div>
         <form action="/logout" method="post">
             <input type="submit" value="logout">

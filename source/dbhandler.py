@@ -249,7 +249,7 @@ def getChats(userID):
         return("Error: {0}. Error code is {1}".format(e, e.args[0]))
     finally:
         connection.close()
-        
+
 # Function to return the last n messages sent in a chat
 def getRecentMessages(chatID, userID):
     try:
