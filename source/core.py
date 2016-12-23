@@ -14,19 +14,16 @@ class BaseHandler(tornado.web.RequestHandler):
 # Class to handle all requests to the root of the website URL
 class RootHandler(BaseHandler):
     def get(self):
-        if not self.current_user:
-            self.redirect("/login")
-            return
         self.render("index.html")
 
 # Class to handle logins
 class LoginHandler(BaseHandler):
     def get(self):
-        self.render("login.html")
+        self.render("login.html", message = "")
 
     def post(self):
         # Get the password info from the database
-        info = dbhandler.getLogin(self.get_argument("user"))
+        info = dbhandler.getLogin(self.get_argument("email"))
         if info != False:
             pwd = info['password']
             salt = info['salt']
@@ -34,18 +31,26 @@ class LoginHandler(BaseHandler):
             userpass = self.get_argument("password")
             hasheduserpass = hashPwd(userpass, salt)
             if hasheduserpass == pwd:
-                self.set_secure_cookie("user", self.get_argument("user"))
-                self.redirect("/")
+                self.set_secure_cookie("email", self.get_argument("email"))
+                self.redirect("/home")
             else:
-                self.write("Incorrect user name or password")
+                self.render("login.html", message = "bad info")
         else:
-            self.write("Incorrect user name or password")
+            self.render("login.html", message = "bad info")
 
 # Class to handle logging out
 class LogoutHandler(BaseHandler):
     def post(self):
-        self.clear_cookie("user")
-        self.redirect("/login")
+        self.clear_cookie("email")
+        self.redirect("/")
+
+# Class to handle requests to the /home uri
+class HomeHandler(BaseHandler):
+    def get(self):
+        if not self.get_secure_cookie("email"):
+            self.redirect("/login")
+            return
+        self.render("home.html", email = self.get_secure_cookie("email"))
 
 # Function to hash a password supplied by the client and the salt retrieved
 def hashPwd(pwd, salt):
