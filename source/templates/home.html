@@ -5,9 +5,15 @@
     <title>TeamChat</title>
 </head>
 <body>
-    <p>
-        Hello, {{ email }}
-    </p>
+    <div>
+        <p>
+            Hello, {{ email }}
+        </p>
+    </div>
+    <div>
+        {% for chat in chats %}
+            {% module Template("chatlistitem.html", chat = chat) %}
+        {% end %}
     <div>
         <form action="/logout" method="post">
             <input type="submit" value="logout">
