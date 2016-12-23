@@ -10,7 +10,7 @@
             <form action="/login" method="post">
                 <tr>
                     <td>email: </td>
-                    <td><input type="text" name="user" required></td>
+                    <td><input type="text" name="email" required></td>
                 </tr>
                 <tr>
                     <td>password: </td>
@@ -20,6 +20,9 @@
                     <td><input type="submit" value="sign in"></td>
                 </tr>
             </form>
+            <tr>
+                <td>{{ message }}</td>
+            </tr>
         </table>
     </div>
 </body>
