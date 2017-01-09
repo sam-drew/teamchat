@@ -5,13 +5,13 @@ import pymysql
 
 # Function to set user information
 def setUserInfo(email, name, password, salt):
+    connection = pymysql.connect(host = "localhost",
+                                user = "root",
+                                password = "password",
+                                db = "comsciproj",
+                                charset = "utf8mb4",
+                                cursorclass = pymysql.cursors.DictCursor)
     try:
-        connection = pymysql.connect(host = "database.c5kykvy3xul6.eu-west-1.rds.amazonaws.com",
-                                    user = "master",
-                                    password = "password",
-                                    db = "comsciproj",
-                                    charset = "utf8mb4",
-                                    cursorclass = pymysql.cursors.DictCursor)
         # Initialise the cursor, which is used to perform tasks on the DB
         with connection.cursor() as cursor:
             # Insert new record, ID is blank as is self incrementing
@@ -28,13 +28,13 @@ def setUserInfo(email, name, password, salt):
 # Function to check if the new sign-up's email is already in use, returns False
 # if not in use
 def checkEmail(email):
+    connection = pymysql.connect(host = "localhost",
+                                user = "root",
+                                password = "password",
+                                db = "comsciproj",
+                                charset = "utf8mb4",
+                                cursorclass = pymysql.cursors.DictCursor)
     try:
-        connection = pymysql.connect(host = "database.c5kykvy3xul6.eu-west-1.rds.amazonaws.com",
-                                    user = "master",
-                                    password = "password",
-                                    db = "comsciproj",
-                                    charset = "utf8mb4",
-                                    cursorclass = pymysql.cursors.DictCursor)
         with connection.cursor() as cursor:
             sql = ("SELECT email FROM users WHERE email = '{0}'")
             return(not(cursor.execute(sql.format(email))))
@@ -45,13 +45,13 @@ def checkEmail(email):
 
 # Function to get the login information of a given account
 def getLogin(email):
+    connection = pymysql.connect(host = "localhost",
+                                user = "root",
+                                password = "password",
+                                db = "comsciproj",
+                                charset = "utf8mb4",
+                                cursorclass = pymysql.cursors.DictCursor)
     try:
-        connection = pymysql.connect(host = "database.c5kykvy3xul6.eu-west-1.rds.amazonaws.com",
-                                    user = "master",
-                                    password = "password",
-                                    db = "comsciproj",
-                                    charset = "utf8mb4",
-                                    cursorclass = pymysql.cursors.DictCursor)
         with connection.cursor() as cursor:
             sql = ("SELECT password, salt FROM users WHERE email = '{0}'")
             returnValue = cursor.execute(sql.format(email))
@@ -67,13 +67,13 @@ def getLogin(email):
 
 # Function to set a new message in the database
 def setMessage(userID, chatID, content):
+    connection = pymysql.connect(host = "localhost",
+                                user = "root",
+                                password = "password",
+                                db = "comsciproj",
+                                charset = "utf8mb4",
+                                cursorclass = pymysql.cursors.DictCursor)
     try:
-        connection = pymysql.connect(host = "database.c5kykvy3xul6.eu-west-1.rds.amazonaws.com",
-                                    user = "master",
-                                    password = "password",
-                                    db = "comsciproj",
-                                    charset = "utf8mb4",
-                                    cursorclass = pymysql.cursors.DictCursor)
         with connection.cursor() as cursor:
             # Get the memberID of the related user and chat
             memberID = checkChatPrivileges(userID, chatID)
@@ -93,13 +93,13 @@ def setMessage(userID, chatID, content):
 # Function to set user privileges. Input user will be the userID, Input
 # chats will be a dict defined as chatID: admin? where admin is boolean
 def setPrivileges(userID, chats):
+    connection = pymysql.connect(host = "localhost",
+                                user = "root",
+                                password = "password",
+                                db = "comsciproj",
+                                charset = "utf8mb4",
+                                cursorclass = pymysql.cursors.DictCursor)
     try:
-        connection = pymysql.connect(host = "database.c5kykvy3xul6.eu-west-1.rds.amazonaws.com",
-                                    user = "master",
-                                    password = "password",
-                                    db = "comsciproj",
-                                    charset = "utf8mb4",
-                                    cursorclass = pymysql.cursors.DictCursor)
         with connection.cursor() as cursor:
             # Iterate over the keys in the dict
             for chatID in chats:
@@ -119,13 +119,13 @@ def setPrivileges(userID, chats):
 
 # Function to check if a user has admin privileges, returns True if true
 def checkAdmin(userID):
+    connection = pymysql.connect(host = "localhost",
+                                user = "root",
+                                password = "password",
+                                db = "comsciproj",
+                                charset = "utf8mb4",
+                                cursorclass = pymysql.cursors.DictCursor)
     try:
-        connection = pymysql.connect(host = "database.c5kykvy3xul6.eu-west-1.rds.amazonaws.com",
-                                    user = "master",
-                                    password = "password",
-                                    db = "comsciproj",
-                                    charset = "utf8mb4",
-                                    cursorclass = pymysql.cursors.DictCursor)
         with connection.cursor() as cursor:
             sql = ("SELECT admin FROM members WHERE userID = '{0}'")
             cursor.execute(sql.format(userID, chatID))
@@ -138,13 +138,13 @@ def checkAdmin(userID):
 
 # Function to check if a user has the the correct privileges to message a chat
 def checkChatPrivileges(userID, chatID):
+    connection = pymysql.connect(host = "localhost",
+                                user = "root",
+                                password = "password",
+                                db = "comsciproj",
+                                charset = "utf8mb4",
+                                cursorclass = pymysql.cursors.DictCursor)
     try:
-        connection = pymysql.connect(host = "database.c5kykvy3xul6.eu-west-1.rds.amazonaws.com",
-                                    user = "master",
-                                    password = "password",
-                                    db = "comsciproj",
-                                    charset = "utf8mb4",
-                                    cursorclass = pymysql.cursors.DictCursor)
         with connection.cursor() as cursor:
             sql = ("SELECT ID FROM members WHERE userID = '{0}' AND chatID = '{1}'")
             cursor.execute(sql.format(userID, chatID))
@@ -159,13 +159,13 @@ def checkChatPrivileges(userID, chatID):
 
 # Function to get a user's name by their userID
 def getUserName(userID):
+    connection = pymysql.connect(host = "localhost",
+                                user = "root",
+                                password = "password",
+                                db = "comsciproj",
+                                charset = "utf8mb4",
+                                cursorclass = pymysql.cursors.DictCursor)
     try:
-        connection = pymysql.connect(host = "database.c5kykvy3xul6.eu-west-1.rds.amazonaws.com",
-                                    user = "master",
-                                    password = "password",
-                                    db = "comsciproj",
-                                    charset = "utf8mb4",
-                                    cursorclass = pymysql.cursors.DictCursor)
         with connection.cursor() as cursor:
             sql = ("SELECT name FROM users WHERE ID = '{0}'")
             cursor.execute(sql.format(userID))
@@ -178,13 +178,13 @@ def getUserName(userID):
 
 # Function to get the name of a chat
 def getChatName(chatID):
+    connection = pymysql.connect(host = "localhost",
+                                user = "root",
+                                password = "password",
+                                db = "comsciproj",
+                                charset = "utf8mb4",
+                                cursorclass = pymysql.cursors.DictCursor)
     try:
-        connection = pymysql.connect(host = "database.c5kykvy3xul6.eu-west-1.rds.amazonaws.com",
-                                    user = "master",
-                                    password = "password",
-                                    db = "comsciproj",
-                                    charset = "utf8mb4",
-                                    cursorclass = pymysql.cursors.DictCursor)
         with connection.cursor() as cursor:
             sql = ("SELECT name FROM chats WHERE ID = '{0}'")
             cursor.execute(sql.format(chatID))
@@ -197,13 +197,13 @@ def getChatName(chatID):
 
 # Function to get the all the memberID's associated with a chat
 def getMemberIDs(chatID):
+    connection = pymysql.connect(host = "localhost",
+                                user = "root",
+                                password = "password",
+                                db = "comsciproj",
+                                charset = "utf8mb4",
+                                cursorclass = pymysql.cursors.DictCursor)
     try:
-        connection = pymysql.connect(host = "database.c5kykvy3xul6.eu-west-1.rds.amazonaws.com",
-                                    user = "master",
-                                    password = "password",
-                                    db = "comsciproj",
-                                    charset = "utf8mb4",
-                                    cursorclass = pymysql.cursors.DictCursor)
         with connection.cursor() as cursor:
             sql = ("SELECT ID FROM members WHERE chatID = '{0}'")
             cursor.execute(sql.format(chatID))
@@ -216,13 +216,13 @@ def getMemberIDs(chatID):
 
 # Function to get the userID of a given email address
 def getUserID(email):
+    connection = pymysql.connect(host = "localhost",
+                                user = "root",
+                                password = "password",
+                                db = "comsciproj",
+                                charset = "utf8mb4",
+                                cursorclass = pymysql.cursors.DictCursor)
     try:
-        connection = pymysql.connect(host = "database.c5kykvy3xul6.eu-west-1.rds.amazonaws.com",
-                                    user = "master",
-                                    password = "password",
-                                    db = "comsciproj",
-                                    charset = "utf8mb4",
-                                    cursorclass = pymysql.cursors.DictCursor)
         with connection.cursor() as cursor:
             sql = ("SELECT ID FROM users WHERE email = '{0}'")
             cursor.execute(sql.format(email))
@@ -234,13 +234,13 @@ def getUserID(email):
         connection.close()
 
 def getChats(userID):
+    connection = pymysql.connect(host = "localhost",
+                                user = "root",
+                                password = "password",
+                                db = "comsciproj",
+                                charset = "utf8mb4",
+                                cursorclass = pymysql.cursors.DictCursor)
     try:
-        connection = pymysql.connect(host = "database.c5kykvy3xul6.eu-west-1.rds.amazonaws.com",
-                                    user = "master",
-                                    password = "password",
-                                    db = "comsciproj",
-                                    charset = "utf8mb4",
-                                    cursorclass = pymysql.cursors.DictCursor)
         with connection.cursor() as cursor:
             sql = ("SELECT chats.name FROM chats INNER JOIN members ON chats.ID = members.chatID WHERE userID = {0}")
             cursor.execute(sql.format(userID))
