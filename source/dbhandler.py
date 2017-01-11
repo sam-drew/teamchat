@@ -1,16 +1,28 @@
 import pymysql
+import yaml
 
 # Take the 'setUserInfo' function as the example code structure (with comments) for
 # all connections using PyMySQL, with regard to asigning cursors etc.
 
+# Function to make connection to the database. Reads the parameters out of a
+# configuration file. Returns the connection object for use by other functions.
+def makeConnection():
+    with open("dbconfig.yaml", 'r') as stream:
+        try:
+            config = yaml.load(stream)
+            connection = pymysql.connect(host = config['MySQL']['hostname'],
+                                        user = config['MySQL']['user'],
+                                        password = config['MySQL']['password'],
+                                        db = config['MySQL']['database'],
+                                        charset = "utf8mb4",
+                                        cursorclass = pymysql.cursors.DictCursor)
+            return(connection)
+        except Exception as e:
+            return("Error: {0}".format(e))
+
 # Function to set user information
 def setUserInfo(email, name, password, salt):
-    connection = pymysql.connect(host = "localhost",
-                                user = "root",
-                                password = "password",
-                                db = "comsciproj",
-                                charset = "utf8mb4",
-                                cursorclass = pymysql.cursors.DictCursor)
+    connection = makeConnection()
     try:
         # Initialise the cursor, which is used to perform tasks on the DB
         with connection.cursor() as cursor:
