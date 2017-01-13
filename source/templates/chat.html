@@ -1,0 +1,16 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>{{ chatname }}</title>
+</head>
+<body>
+    <table>
+        {% for message in messages %}
+            <tr>
+                <td><b>{{ message['name'] }}:</b></td>
+                <td>{{ message['content'] }}</td>
+            </tr>
+        {% end %}
+    </table>
+</html>
