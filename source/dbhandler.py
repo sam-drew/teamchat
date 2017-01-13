@@ -199,7 +199,7 @@ def getChats(userID):
     connection = makeConnection()
     try:
         with connection.cursor() as cursor:
-            sql = ("SELECT chats.name FROM chats INNER JOIN members ON chats.ID = members.chatID WHERE userID = {0}")
+            sql = ("SELECT chats.name, chats.ID FROM chats INNER JOIN members ON chats.ID = members.chatID WHERE userID = {0}")
             cursor.execute(sql.format(userID))
             return(cursor.fetchall())
     except Exception as e:

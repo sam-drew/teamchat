@@ -16,6 +16,10 @@ class RootHandler(BaseHandler):
     def get(self):
         self.render("index.html")
 
+class TestSubHandler(BaseHandler):
+    def get(self, link):
+        self.write(str(link))
+
 # Class to handle logins
 class LoginHandler(BaseHandler):
     def get(self):
@@ -54,10 +58,6 @@ class HomeHandler(BaseHandler):
             userEmail = (self.get_secure_cookie("email").decode("utf-8"))
             userID = dbhandler.getUserID(userEmail)['ID']
             chatNames = dbhandler.getChats(userID)
-            temp = []
-            for i in chatNames:
-                temp.append(i['name'])
-            chatNames = temp
             self.render("home.html", email = userEmail, chats = chatNames)
 
 
@@ -71,7 +71,8 @@ def hashPwd(pwd, salt):
 # Initialise the application
 enable_pretty_logging()
 app = tornado.web.Application(
-    [(r"/", RootHandler), (r"/login", LoginHandler), (r"/logout", LogoutHandler), (r"/home", HomeHandler),],
+    [(r"/", RootHandler), (r"/login", LoginHandler), (r"/logout", LogoutHandler),
+     (r"/home", HomeHandler), (r"/chat/(.*)", TestSubHandler),],
     # Set the path where tornado will find the html templates
     template_path = os.path.join(os.path.dirname(__file__), "templates"),
     cookie_secret = "secret",

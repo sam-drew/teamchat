@@ -11,11 +11,15 @@
         </p>
     </div>
     <div>
-        <ul>
+        <table>
             {% for chat in chats %}
-                <li>{{ chat }}</li>
+                <tr>
+                    <td>{{ chat['name'] }}</td>
+                </tr>
             {% end %}
-        </ul>
+        </table>
+    </div>
+    <br/>
     <div>
         <form action="/logout" method="post">
             <input type="submit" value="logout">
