@@ -40,12 +40,7 @@ def setUserInfo(email, name, password, salt):
 # Function to check if the new sign-up's email is already in use, returns False
 # if not in use
 def checkEmail(email):
-    connection = pymysql.connect(host = "localhost",
-                                user = "root",
-                                password = "password",
-                                db = "comsciproj",
-                                charset = "utf8mb4",
-                                cursorclass = pymysql.cursors.DictCursor)
+    connection = makeConnection()
     try:
         with connection.cursor() as cursor:
             sql = ("SELECT email FROM users WHERE email = '{0}'")
@@ -57,12 +52,7 @@ def checkEmail(email):
 
 # Function to get the login information of a given account
 def getLogin(email):
-    connection = pymysql.connect(host = "localhost",
-                                user = "root",
-                                password = "password",
-                                db = "comsciproj",
-                                charset = "utf8mb4",
-                                cursorclass = pymysql.cursors.DictCursor)
+    connection = makeConnection()
     try:
         with connection.cursor() as cursor:
             sql = ("SELECT password, salt FROM users WHERE email = '{0}'")
@@ -79,12 +69,7 @@ def getLogin(email):
 
 # Function to set a new message in the database
 def setMessage(userID, chatID, content):
-    connection = pymysql.connect(host = "localhost",
-                                user = "root",
-                                password = "password",
-                                db = "comsciproj",
-                                charset = "utf8mb4",
-                                cursorclass = pymysql.cursors.DictCursor)
+    connection = makeConnection()
     try:
         with connection.cursor() as cursor:
             # Get the memberID of the related user and chat
@@ -105,12 +90,7 @@ def setMessage(userID, chatID, content):
 # Function to set user privileges. Input user will be the userID, Input
 # chats will be a dict defined as chatID: admin? where admin is boolean
 def setPrivileges(userID, chats):
-    connection = pymysql.connect(host = "localhost",
-                                user = "root",
-                                password = "password",
-                                db = "comsciproj",
-                                charset = "utf8mb4",
-                                cursorclass = pymysql.cursors.DictCursor)
+    connection = makeConnection()
     try:
         with connection.cursor() as cursor:
             # Iterate over the keys in the dict
@@ -131,16 +111,11 @@ def setPrivileges(userID, chats):
 
 # Function to check if a user has admin privileges, returns True if true
 def checkAdmin(userID):
-    connection = pymysql.connect(host = "localhost",
-                                user = "root",
-                                password = "password",
-                                db = "comsciproj",
-                                charset = "utf8mb4",
-                                cursorclass = pymysql.cursors.DictCursor)
+    connection = makeConnection()
     try:
         with connection.cursor() as cursor:
-            sql = ("SELECT admin FROM members WHERE userID = '{0}'")
-            cursor.execute(sql.format(userID, chatID))
+            sql = ("SELECT admin FROM members WHERE userID = {0}")
+            cursor.execute(sql.format(userID))
             result = cursor.fetchall()
             return(result)
     except Exception as e:
@@ -150,12 +125,7 @@ def checkAdmin(userID):
 
 # Function to check if a user has the the correct privileges to message a chat
 def checkChatPrivileges(userID, chatID):
-    connection = pymysql.connect(host = "localhost",
-                                user = "root",
-                                password = "password",
-                                db = "comsciproj",
-                                charset = "utf8mb4",
-                                cursorclass = pymysql.cursors.DictCursor)
+    connection = makeConnection()
     try:
         with connection.cursor() as cursor:
             sql = ("SELECT ID FROM members WHERE userID = '{0}' AND chatID = '{1}'")
@@ -171,12 +141,7 @@ def checkChatPrivileges(userID, chatID):
 
 # Function to get a user's name by their userID
 def getUserName(userID):
-    connection = pymysql.connect(host = "localhost",
-                                user = "root",
-                                password = "password",
-                                db = "comsciproj",
-                                charset = "utf8mb4",
-                                cursorclass = pymysql.cursors.DictCursor)
+    connection = makeConnection()
     try:
         with connection.cursor() as cursor:
             sql = ("SELECT name FROM users WHERE ID = '{0}'")
@@ -190,12 +155,7 @@ def getUserName(userID):
 
 # Function to get the name of a chat
 def getChatName(chatID):
-    connection = pymysql.connect(host = "localhost",
-                                user = "root",
-                                password = "password",
-                                db = "comsciproj",
-                                charset = "utf8mb4",
-                                cursorclass = pymysql.cursors.DictCursor)
+    connection = makeConnection()
     try:
         with connection.cursor() as cursor:
             sql = ("SELECT name FROM chats WHERE ID = '{0}'")
@@ -209,12 +169,7 @@ def getChatName(chatID):
 
 # Function to get the all the memberID's associated with a chat
 def getMemberIDs(chatID):
-    connection = pymysql.connect(host = "localhost",
-                                user = "root",
-                                password = "password",
-                                db = "comsciproj",
-                                charset = "utf8mb4",
-                                cursorclass = pymysql.cursors.DictCursor)
+    connection = makeConnection()
     try:
         with connection.cursor() as cursor:
             sql = ("SELECT ID FROM members WHERE chatID = '{0}'")
@@ -228,12 +183,7 @@ def getMemberIDs(chatID):
 
 # Function to get the userID of a given email address
 def getUserID(email):
-    connection = pymysql.connect(host = "localhost",
-                                user = "root",
-                                password = "password",
-                                db = "comsciproj",
-                                charset = "utf8mb4",
-                                cursorclass = pymysql.cursors.DictCursor)
+    connection = makeConnection()
     try:
         with connection.cursor() as cursor:
             sql = ("SELECT ID FROM users WHERE email = '{0}'")
@@ -246,12 +196,7 @@ def getUserID(email):
         connection.close()
 
 def getChats(userID):
-    connection = pymysql.connect(host = "localhost",
-                                user = "root",
-                                password = "password",
-                                db = "comsciproj",
-                                charset = "utf8mb4",
-                                cursorclass = pymysql.cursors.DictCursor)
+    connection = makeConnection()
     try:
         with connection.cursor() as cursor:
             sql = ("SELECT chats.name FROM chats INNER JOIN members ON chats.ID = members.chatID WHERE userID = {0}")
@@ -265,6 +210,7 @@ def getChats(userID):
 # Function to return the last n messages sent in a chat
 def getRecentMessages(chatID, userID):
     try:
+        connection = makeConnection()
         # Use checkChatPrivileges to see if user is allowed to access specified chat
         memberID = checkChatPrivileges(userID, chatID)
         if memberID != False:
