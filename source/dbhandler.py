@@ -207,7 +207,7 @@ def getChats(userID):
     finally:
         connection.close()
 
-def getChatNames(email):
+def getChatNameID(email):
     connection = makeConnection()
     try:
         with connection.cursor() as cursor:

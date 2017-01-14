@@ -52,7 +52,7 @@ class HomeHandler(BaseHandler):
             return
         else:
             userEmail = (self.get_secure_cookie("email").decode("utf-8"))
-            chatNames = dbhandler.getChatNames(userEmail)
+            chatNames = dbhandler.getChatNameID(userEmail)
             self.render("home.html", email = userEmail, chats = chatNames)
 
 class ChatHandler(BaseHandler):

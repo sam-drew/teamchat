@@ -37,6 +37,12 @@ class TestDBHandler(unittest.TestCase):
         chats = dbhandler.getChats(1)
         self.assertEqual('finance', chats[0]['name'])
         self.assertEqual('admin', chats[1]['name'])
+
+    def test_getChatNameID(self):
+        chats = dbhandler.getChats("james@email.com")
+        self.assertEqual('finance', chats[0]['name'])
+        self.assertEqual('admin', chats[1]['name'])
+        
 #class TestCore(unittest.TestCase):
 #    def test_loginPage(self):
 #        driver = webdriver.Firefox()
