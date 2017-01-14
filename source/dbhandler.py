@@ -207,6 +207,18 @@ def getChats(userID):
     finally:
         connection.close()
 
+def getChatNames(email):
+    connection = makeConnection()
+    try:
+        with connection.cursor() as cursor:
+            sql = ("SELECT chats.name, chats.ID FROM chats INNER JOIN members ON chats.ID = members.chatID INNER JOIN users ON users.ID = members.userID WHERE users.email = '{0}'")
+            cursor.execute(sql.format(email))
+            return(cursor.fetchall())
+    except Exception as e:
+        return("Error: {0}. Error code is {1}".format(e, e.args[0]))
+    finally:
+        connection.close()
+
 # Function to return the last n messages sent in a chat
 def getRecentMessages(chatID, userID):
     try:
