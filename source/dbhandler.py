@@ -44,7 +44,7 @@ def checkEmail(email):
     try:
         with connection.cursor() as cursor:
             sql = ("SELECT email FROM users WHERE email = '{0}'")
-            return(not(cursor.execute(sql.format(email))))
+            return(cursor.execute(sql.format(email)))
     except Exception as e:
         return("Error: {0}. Error code is {1}".format(e, e.args[0]))
     finally:
@@ -131,7 +131,11 @@ def checkChatPrivileges(userID, chatID):
             sql = ("SELECT ID FROM members WHERE userID = '{0}' AND chatID = '{1}'")
             cursor.execute(sql.format(userID, chatID))
             if cursor != False:
-                return(cursor.fetchone())
+                returnVal = cursor.fetchone()
+                if returnVal == None:
+                    return(False)
+                else:
+                    return(returnVal)
             else:
                 return(False)
     except Exception as e:

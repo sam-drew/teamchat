@@ -55,11 +55,21 @@ class HomeHandler(BaseHandler):
             chatNames = dbhandler.getChatNameID(userEmail)
             self.render("home.html", email = userEmail, chats = chatNames)
 
+# Class to handle all url's beginning with "/url/".
 class ChatHandler(BaseHandler):
     def get(self, link):
-        messages = [{'name': 'james', 'content': 'hello'}]
-        self.render("chat.html", messages = messages, chatname = link)
-
+        userEmail = self.get_secure_cookie("email").decode("utf-8")
+        print(userEmail)
+        if dbhandler.checkEmail(userEmail) == True:
+            userID = dbhandler.getUserID(userEmail)['ID']
+            print(userID)
+            print(dbhandler.checkChatPrivileges(userID, link))
+            if dbhandler.checkChatPrivileges(userID, link) != False:
+                self.render("chat.html", messages = [{'name': 'james', 'content': 'hello'}], chatname = link)
+            else:
+                self.redirect("/home")
+        else:
+            self.redirect("/")
 
 # Function to hash a password supplied by the client and the salt retrieved
 def hashPwd(pwd, salt):
