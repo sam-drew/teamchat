@@ -21,4 +21,20 @@
             {% end %}
         </table>
     </div>
+    <br/>
+    <div id="messageInput">
+        <form method="post" id="messageForm">
+            <table>
+                <tr>
+                    <td>
+                        <input name="body" id="message">
+                    </td>
+                    <td>
+                        <input type="submit" value="send">
+                        <input type="hidden" name="next" value="{{ request.path }}">
+                    </td>
+                </tr>
+            </table>
+        </form>
+    </div>
 </html>
