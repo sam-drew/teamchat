@@ -1,5 +1,6 @@
 import tornado.ioloop
 import tornado.web
+import tornado.websocket
 from tornado.log import enable_pretty_logging
 
 import os.path
@@ -76,6 +77,16 @@ class ChatHandler(BaseHandler):
                 self.redirect("/")
         else:
             self.redirect("/")
+
+# Class to handle the WebSocket connections.
+class WSocketHandler(tornado.websocket.WebSocketHandler):
+    connectedClients = set()
+
+    def open(self):
+        WSocketHandler.connectedClients.add(self)
+
+    def on_close(self):
+        WSocketHandler.connectedClients.remove(self)
 
 # Function to hash a password supplied by the client and the salt retrieved
 def hashPwd(pwd, salt):
