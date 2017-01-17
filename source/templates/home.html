@@ -5,22 +5,22 @@
     <title>TeamChat</title>
 </head>
 <body>
-    <div>
+    <div id="greeting">
         <p>
             Hello, {{ email }}
         </p>
     </div>
-    <div>
+    <div id="chatList">
         <table>
             {% for chat in chats %}
                 <tr>
-                    <td>{{ chat['name'] }}</td>
+                    <td><a href="/chat/{{ chat['ID'] }}">{{ chat['name'] }}</a></td>
                 </tr>
             {% end %}
         </table>
     </div>
     <br/>
-    <div>
+    <div id="logoutForm">
         <form action="/logout" method="post">
             <input type="submit" value="logout">
         </form>

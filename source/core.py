@@ -59,13 +59,15 @@ class HomeHandler(BaseHandler):
 class ChatHandler(BaseHandler):
     def get(self, link):
         userEmail = self.get_secure_cookie("email").decode("utf-8")
-        print(userEmail)
         if dbhandler.checkEmail(userEmail) == True:
             userID = dbhandler.getUserID(userEmail)['ID']
-            print(userID)
-            print(dbhandler.checkChatPrivileges(userID, link))
             if dbhandler.checkChatPrivileges(userID, link) != False:
-                self.render("chat.html", messages = [{'name': 'james', 'content': 'hello'}], chatname = link)
+                messageList = dbhandler.getRecentMessages(link)
+                messageList.reverse()
+                for m in messageList:
+                    userName = dbhandler.getUserName(m['memberID'])
+                    m['uName'] = userName['name']
+                self.render("chat.html", messages = messageList, chatname = link)
             else:
                 self.redirect("/home")
         else:

@@ -143,13 +143,13 @@ def checkChatPrivileges(userID, chatID):
     finally:
         connection.close()
 
-# Function to get a user's name by their userID
-def getUserName(userID):
+# Function to get a user's name by their memberID
+def getUserName(memberID):
     connection = makeConnection()
     try:
         with connection.cursor() as cursor:
-            sql = ("SELECT name FROM users WHERE ID = '{0}'")
-            cursor.execute(sql.format(userID))
+            sql = ("SELECT users.name FROM users INNER JOIN members ON members.userID = users.ID WHERE members.ID = '{0}'")
+            cursor.execute(sql.format(memberID))
             name = cursor.fetchone()
             return(name)
     except Exception as e:
@@ -179,7 +179,10 @@ def getMemberIDs(chatID):
             sql = ("SELECT ID FROM members WHERE chatID = '{0}'")
             cursor.execute(sql.format(chatID))
             memberIDs = cursor.fetchall()
-            return(memberIDs)
+            memberIDList = []
+            for i in memberIDs:
+                memberIDList.append(i['ID'])
+            return(memberIDList)
     except Exception as e:
         return("Error: {0}. Error code is {1}".format(e, e.args[0]))
     finally:
@@ -224,31 +227,23 @@ def getChatNameID(email):
         connection.close()
 
 # Function to return the last n messages sent in a chat
-def getRecentMessages(chatID, userID):
+def getRecentMessages(chatID):
     try:
         connection = makeConnection()
-        # Use checkChatPrivileges to see if user is allowed to access specified chat
-        memberID = checkChatPrivileges(userID, chatID)
-        if memberID != False:
-            try:
-                with connection.cursor() as cursor:
-                    # Get all the memberID's associated with that chat, to
-                    # search the table for all messages to that chat
-                    allMembers = getMemberIDs(chatID)
-                    # Select the 25 most recent entries to the table where the
-                    # memberID is of allMembers list
-                    sql = ("SELECT ID, content, ts, memberID FROM messages WHERE memberID IN ('{0}') ORDER BY ID DESC LIMIT 25")
-                    cursor.execute((sql.format(allMembers).replace("[", "").replace("]", "")))
-                    messages = cursor.fetchall()
-                    return(messages)
-            except Exception as e:
-                return("Error: {0}. Error code is {1}".format(e, e.args[0]))
-            finally:
-                connection.close()
-        else:
-            return(False)
+        with connection.cursor() as cursor:
+            # Get all the memberID's associated with that chat, to
+            # search the table for all messages to that chat
+            allMembers = str(getMemberIDs(chatID))
+            # Select the 25 most recent entries to the table where the
+            # memberID is of allMembers list
+            sql = ("SELECT ID, content, ts, memberID FROM messages WHERE memberID IN ({0}) ORDER BY ID DESC LIMIT 25")
+            cursor.execute((sql.format(allMembers).replace("[", "").replace("]", "")))
+            messages = cursor.fetchall()
+            return(messages)
     except Exception as e:
         return("Error: {0}. Error code is {1}".format(e, e.args[0]))
+    finally:
+        connection.close()
 
 # Function to add new user to database
 def addNewUser(userID, email, name, password, salt, chats):
