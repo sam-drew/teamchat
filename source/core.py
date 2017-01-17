@@ -58,18 +58,22 @@ class HomeHandler(BaseHandler):
 # Class to handle all url's beginning with "/url/".
 class ChatHandler(BaseHandler):
     def get(self, link):
-        userEmail = self.get_secure_cookie("email").decode("utf-8")
-        if dbhandler.checkEmail(userEmail) == True:
-            userID = dbhandler.getUserID(userEmail)['ID']
-            if dbhandler.checkChatPrivileges(userID, link) != False:
-                messageList = dbhandler.getRecentMessages(link)
-                messageList.reverse()
-                for m in messageList:
-                    userName = dbhandler.getUserName(m['memberID'])
-                    m['uName'] = userName['name']
-                self.render("chat.html", messages = messageList, chatname = link)
+        userEmail = self.get_secure_cookie("email")
+        if userEmail != None:
+            userEmail = userEmail.decode("utf-8")
+            if dbhandler.checkEmail(userEmail) == True:
+                userID = dbhandler.getUserID(userEmail)['ID']
+                if dbhandler.checkChatPrivileges(userID, link) != False:
+                    messageList = dbhandler.getRecentMessages(link)
+                    messageList.reverse()
+                    for m in messageList:
+                        userName = dbhandler.getUserName(m['memberID'])
+                        m['uName'] = userName['name']
+                    self.render("chat.html", messages = messageList, chatname = link)
+                else:
+                    self.redirect("/home")
             else:
-                self.redirect("/home")
+                self.redirect("/")
         else:
             self.redirect("/")
 

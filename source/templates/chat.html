@@ -5,12 +5,20 @@
     <title>{{ chatname }}</title>
 </head>
 <body>
-    <table>
-        {% for message in messages %}
-            <tr>
-                <td><b>{{ message['uName'] }}:</b></td>
-                <td>{{ message['content'] }}</td>
-            </tr>
-        {% end %}
-    </table>
+    <div id="backButton">
+        <form action="/home">
+            <input type="submit" value="back"/>
+        </form>
+    </div>
+    <br/>
+    <div id="messageList">
+        <table>
+            {% for message in messages %}
+                <tr>
+                    <td><b>{{ message['uName'] }}:</b></td>
+                    <td>{{ message['content'] }}</td>
+                </tr>
+            {% end %}
+        </table>
+    </div>
 </html>
