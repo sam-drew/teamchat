@@ -79,14 +79,24 @@ class ChatHandler(BaseHandler):
             self.redirect("/")
 
 # Class to handle the WebSocket connections.
-class WSocketHandler(tornado.websocket.WebSocketHandler):
-    connectedClients = set()
+class WSocketHandler(tornado.websocket.WebSocketHandler, BaseHandler):
+    connectedClients = {}
 
-    def open(self):
-        WSocketHandler.connectedClients.add(self)
+    def open(self, url):
+        self.url = url
+        if url in WSocketHandler.connectedClients:
+            WSocketHandler.connectedClients[url].append(self)
+        else:
+            WSocketHandler.connectedClients[url] = [self,]
 
     def on_close(self):
-        WSocketHandler.connectedClients.remove(self)
+        WSocketHandler.connectedClients[url].remove(self)
+
+    def on_message(self, message):
+        message = tornado.escape.json_decode(message)
+        email = self.get_secure_cookie("email")
+
+        #newChat = {'ID': }
 
 # Function to hash a password supplied by the client and the salt retrieved
 def hashPwd(pwd, salt):
@@ -99,9 +109,10 @@ def hashPwd(pwd, salt):
 enable_pretty_logging()
 app = tornado.web.Application(
     [(r"/", RootHandler), (r"/login", LoginHandler), (r"/logout", LogoutHandler),
-     (r"/home", HomeHandler), (r"/chat/(.*)", ChatHandler),],
+     (r"/home", HomeHandler), (r"/chat/(.*)", ChatHandler), (r"/socket/(.*)", WSocketHandler),],
     # Set the path where tornado will find the html templates
     template_path = os.path.join(os.path.dirname(__file__), "templates"),
+    static_path = os.path.join(os.path.dirname(__file__), "static"),
     cookie_secret = "secret",
 )
 
