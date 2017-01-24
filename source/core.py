@@ -83,17 +83,37 @@ class WSocketHandler(tornado.websocket.WebSocketHandler, BaseHandler):
     connectedClients = {}
 
     def open(self, url):
+        self.url = url
+        self.chatID = WSocketHandler.stripUrl(url)
         if url in WSocketHandler.connectedClients:
             WSocketHandler.connectedClients[url].append(self)
         else:
             WSocketHandler.connectedClients[url] = [self,]
 
     def on_close(self):
-        WSocketHandler.connectedClients[url].remove(self)
+        WSocketHandler.connectedClients[self.url].remove(self)
 
     def on_message(self, message):
-        message = tornado.escape.json_decode(message)
-        email = self.get_secure_cookie("email")
+        userEmail = self.get_secure_cookie("email")
+        userID = dbhandler.getUserID(userEmail)['ID']
+        if dbhandler.checkChatPrivileges(userID, self.chatID) != False:
+            message = tornado.escape.json_decode(message)
+            if dbhandler.setMessage(userID, self.chatID, message) == True:
+                logging.info("Successfully saved message")
+                newChatMessage = {
+                'ID': "",
+                'content': "",
+                'uName': ""
+                }
+            else:
+                logging.error("Error saving message")
+        else:
+            pass
+
+    @classmethod
+    def sendMessages(cls, message, chat):
+        for user in WSocketHandler.connectedClients[cls.chatID]:
+            user.write_message(message)
 
     @classmethod
     def stripUrl(url):

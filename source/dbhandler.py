@@ -76,12 +76,13 @@ def setMessage(userID, chatID, content):
             memberID = checkChatPrivileges(userID, chatID)
             if memberID != False:
                 # Insert new entry into the messages table with the memberID and message content
-                sql = ("INSERT INTO messages (content, memberID) VALUES ('{0}', '{1}')")
-                cursor.execute(sql.format(content, memberID))
-                return(True)
+                sql = ("INSERT INTO messages (content, memberID) VALUES ('{0}', {1})")
+                cursor.execute(sql.format(content, memberID['ID']))
+                lastID = connection.insert_id()
             else:
                 return(False)
         connection.commit()
+        return(lastID)
     except Exception as e:
         return("Error: {0}. Error code is {1}".format(e, e.args[0]))
     finally:
