@@ -83,7 +83,6 @@ class WSocketHandler(tornado.websocket.WebSocketHandler, BaseHandler):
     connectedClients = {}
 
     def open(self, url):
-        self.url = url
         if url in WSocketHandler.connectedClients:
             WSocketHandler.connectedClients[url].append(self)
         else:
@@ -96,7 +95,10 @@ class WSocketHandler(tornado.websocket.WebSocketHandler, BaseHandler):
         message = tornado.escape.json_decode(message)
         email = self.get_secure_cookie("email")
 
-        #newChat = {'ID': }
+    @classmethod
+    def stripUrl(url):
+        splitString = url.rsplit("/", 1)
+        return(splitString[(len(splitString ) - 1)])
 
 # Function to hash a password supplied by the client and the salt retrieved
 def hashPwd(pwd, salt):
