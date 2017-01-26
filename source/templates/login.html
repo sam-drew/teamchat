@@ -19,6 +19,7 @@
                 <tr>
                     <td><input type="submit" value="sign in"></td>
                 </tr>
+                {% module xsrf_form_html() %}
             </form>
             <tr>
                 <td>{{ message }}</td>

@@ -23,6 +23,7 @@
     <div id="logoutForm">
         <form action="/logout" method="post">
             <input type="submit" value="logout">
+            {% module xsrf_form_html() %}
         </form>
     </div>
 </body>
