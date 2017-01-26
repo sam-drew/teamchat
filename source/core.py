@@ -2,7 +2,7 @@ import tornado.ioloop
 import tornado.web
 import tornado.websocket
 from tornado.log import enable_pretty_logging
-
+import logging
 import os.path
 import bcrypt
 
@@ -85,26 +85,38 @@ class WSocketHandler(tornado.websocket.WebSocketHandler, BaseHandler):
     def open(self, url):
         self.url = url
         self.chatID = WSocketHandler.stripUrl(url)
-        if url in WSocketHandler.connectedClients:
-            WSocketHandler.connectedClients[url].append(self)
+        if self.chatID in WSocketHandler.connectedClients:
+            WSocketHandler.connectedClients[self.chatID].append(self)
         else:
-            WSocketHandler.connectedClients[url] = [self,]
+            WSocketHandler.connectedClients[self.chatID] = [self,]
+        logging.info(("connectedClients:", WSocketHandler.connectedClients))
 
     def on_close(self):
-        WSocketHandler.connectedClients[self.url].remove(self)
+        WSocketHandler.connectedClients[self.chatID].remove(self)
+        logging.info(("connectedClients:", WSocketHandler.connectedClients))
 
     def on_message(self, message):
         userEmail = self.get_secure_cookie("email")
+        userEmail = userEmail.decode("utf-8")
         userID = dbhandler.getUserID(userEmail)['ID']
         if dbhandler.checkChatPrivileges(userID, self.chatID) != False:
-            message = tornado.escape.json_decode(message)
-            if dbhandler.setMessage(userID, self.chatID, message) == True:
+            message = tornado.escape.json_decode(message)['body']
+#            logging.warn(message)
+            messageID = dbhandler.setMessage(userID, self.chatID, message)
+#            logging.info(("MESSAGE ID: ", messageID))
+            if isinstance(messageID, int) == True:
                 logging.info("Successfully saved message")
                 newChatMessage = {
-                'ID': "",
-                'content': "",
-                'uName': ""
+                'id': messageID,
+                'content': message,
+                'uName': dbhandler.getUserName(userID)['name']
                 }
+                newChatMessage['html'] = tornado.escape.to_basestring(
+                self.render_string('newMessage.html', message = newChatMessage)
+                )
+                logging.info(newChatMessage)
+#                logging.info(self.chatID)
+                WSocketHandler.sendMessages(newChatMessage, self.chatID)
             else:
                 logging.error("Error saving message")
         else:
@@ -112,11 +124,16 @@ class WSocketHandler(tornado.websocket.WebSocketHandler, BaseHandler):
 
     @classmethod
     def sendMessages(cls, message, chat):
-        for user in WSocketHandler.connectedClients[cls.chatID]:
-            user.write_message(message)
+        for user in WSocketHandler.connectedClients[chat]:
+            try:
+                user.write_message(message)
+                logging.info(("User name passed to sendMessages:", message['uName']))
+                logging.info("Sent a message")
+            except:
+                logging.error("Failed to send a message")
 
     @classmethod
-    def stripUrl(url):
+    def stripUrl(cls, url):
         splitString = url.rsplit("/", 1)
         return(splitString[(len(splitString ) - 1)])
 
@@ -136,6 +153,7 @@ app = tornado.web.Application(
     template_path = os.path.join(os.path.dirname(__file__), "templates"),
     static_path = os.path.join(os.path.dirname(__file__), "static"),
     cookie_secret = "secret",
+    xsrf_cookies = True,
 )
 
 app.listen(8080)
