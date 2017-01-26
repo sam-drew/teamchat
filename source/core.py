@@ -89,16 +89,18 @@ class WSocketHandler(tornado.websocket.WebSocketHandler, BaseHandler):
             WSocketHandler.connectedClients[self.chatID].append(self)
         else:
             WSocketHandler.connectedClients[self.chatID] = [self,]
-        logging.info(("connectedClients:", WSocketHandler.connectedClients))
+        logging.info("New Connection {0}, to chatID {1}".format(self, self.chatID))
 
     def on_close(self):
         WSocketHandler.connectedClients[self.chatID].remove(self)
-        logging.info(("connectedClients:", WSocketHandler.connectedClients))
+        logging.info("Disconnect {0}, from chatID {1}".format(self, self.chatID))
 
     def on_message(self, message):
         userEmail = self.get_secure_cookie("email")
         userEmail = userEmail.decode("utf-8")
         userID = dbhandler.getUserID(userEmail)['ID']
+#        logging.warn(("USERNAME on_message:", userName))
+#        logging.warn(("USERID on_message:", userID))
         if dbhandler.checkChatPrivileges(userID, self.chatID) != False:
             message = tornado.escape.json_decode(message)['body']
 #            logging.warn(message)
@@ -109,12 +111,12 @@ class WSocketHandler(tornado.websocket.WebSocketHandler, BaseHandler):
                 newChatMessage = {
                 'id': messageID,
                 'content': message,
-                'uName': dbhandler.getUserName(userID)['name']
+                'uName': dbhandler.getUserNameFromID(userID)['name']
                 }
                 newChatMessage['html'] = tornado.escape.to_basestring(
                 self.render_string('newMessage.html', message = newChatMessage)
                 )
-                logging.info(newChatMessage)
+#                logging.info(newChatMessage)
 #                logging.info(self.chatID)
                 WSocketHandler.sendMessages(newChatMessage, self.chatID)
             else:
@@ -127,7 +129,7 @@ class WSocketHandler(tornado.websocket.WebSocketHandler, BaseHandler):
         for user in WSocketHandler.connectedClients[chat]:
             try:
                 user.write_message(message)
-                logging.info(("User name passed to sendMessages:", message['uName']))
+#                logging.info(("User name passed to sendMessages:", message['uName']))
                 logging.info("Sent a message")
             except:
                 logging.error("Failed to send a message")
