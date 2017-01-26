@@ -158,6 +158,20 @@ def getUserName(memberID):
     finally:
         connection.close()
 
+# Function to get a users name from their userID
+def getUserNameFromID(userID):
+    connection = makeConnection()
+    try:
+        with connection.cursor() as cursor:
+            sql = ("SELECT name FROM users WHERE ID = {0}")
+            cursor.execute(sql.format(userID))
+            name = cursor.fetchone()
+            return(name)
+    except Exception as e:
+        return("Error: {0}. Error code is {1}".format(e, e.args[0]))
+    finally:
+        connection.close()
+
 # Function to get the name of a chat
 def getChatName(chatID):
     connection = makeConnection()
