@@ -1,0 +1,14 @@
+#messageList {
+    word-wrap: break-word;
+}
+
+#backButton {
+    padding-bottom: 20px;
+}
+
+form {
+    width: auto;
+    position: absolute;
+    margin: 0 auto;
+    display: inline-block;
+}
