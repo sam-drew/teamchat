@@ -122,7 +122,7 @@ class WSocketHandler(tornado.websocket.WebSocketHandler, BaseHandler):
             else:
                 logging.error("Error saving message")
         else:
-            pass
+            logging.warn("Message attempt with incorrect privileges. User: {0}, Chat:{1}".format(userID, self.chatID))
 
     @classmethod
     def sendMessages(cls, message, chat):
