@@ -1,7 +1,5 @@
 $(document).ready(function() {
-    if (!window.console) window.console = {};
-    if (!window.console.log) window.console.log = function() {};
-
+    messageHandler.start();
     $("#messageForm").on("submit", function() {
         newMessage($(this));
         return false;
@@ -13,7 +11,6 @@ $(document).ready(function() {
         }
     });
     $("#message").select();
-    messageHandler.start();
 });
 
 function newMessage(input) {
@@ -24,12 +21,12 @@ function newMessage(input) {
 
 jQuery.fn.formToDict = function() {
     var fields = this.serializeArray();
-    var json = {}
+    var d = {}
     for (var i = 0; i < fields.length; i++) {
-        json[fields[i].name] = fields[i].value;
+        d[fields[i].name] = fields[i].value;
     }
-    if (json.next) delete json.next;
-    return json;
+    if (d.next) delete d.next;
+    return d;
 };
 
 var messageHandler = {
@@ -39,14 +36,8 @@ var messageHandler = {
         var url = "ws://" + location.host + "/socket" + location.pathname;
         messageHandler.socket = new WebSocket(url)
         messageHandler.socket.onmessage = function(event) {
-            messageHandler.addMessage(JSON.parse(event.data));
+            var newMessage = $(JSON.parse(event.data).html);
+            $('#messageList').append(newMessage)
         }
-    },
-
-    addMessage: function(message) {
-        var present = $('#message' + message.id)
-        if (present.length > 0) return;
-        var newMessage = $(message.html);
-        $('#messageList').append(newMessage)
     }
 };
