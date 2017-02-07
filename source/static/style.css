@@ -1,14 +1,7 @@
-#messageList {
-    word-wrap: break-word;
+div {
+    padding: 5px;
 }
-
-#backButton {
-    padding-bottom: 20px;
-}
-
-form {
-    width: auto;
-    position: absolute;
-    margin: 0 auto;
-    display: inline-block;
+a {
+    color: #000000;
+    text-decoration: none;
 }

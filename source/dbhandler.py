@@ -118,7 +118,11 @@ def checkAdmin(userID):
             sql = ("SELECT admin FROM members WHERE userID = {0}")
             cursor.execute(sql.format(userID))
             result = cursor.fetchall()
-            return(result)
+            admin = False
+            for r in result:
+                if r['admin'] == 1:
+                    admin = True
+            return(admin)
     except Exception as e:
         return("Error: {0}. Error code is {1}".format(e, e.args[0]))
     finally:
@@ -261,21 +265,13 @@ def getRecentMessages(chatID):
         connection.close()
 
 # Function to add new user to database
-def addNewUser(userID, email, name, password, salt, chats):
+def addNewUser(userID, email, name, password, salt):
     try:
-        chatPrivs = checkChatPrivileges(userID, chatID)
-        if chatPrivs != False:
-            isAdmin = checkAdmin(userID)
-            if isAdmin == True:
-                setUserInfo(email, name, password, salt)
-                if len(chats) > 0:
-                    newUserID = getUserID(email)
-                    setPrivileges(newUserID, chats)
-                else:
-                    return("No chats specified, user is a member of 0 chats")
-            else:
-                return(isAdmin)
+        isAdmin = checkAdmin(userID)
+        if isAdmin == True:
+            setUserInfo(email, name, password, salt)
+            return(True)
         else:
-            return(chatPrivs)
+            return(isAdmin)
     except Exception as e:
         return("Error: {0}. Error code is {1}".format(e, e.args[0]))

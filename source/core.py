@@ -54,7 +54,42 @@ class HomeHandler(BaseHandler):
         else:
             userEmail = (self.get_secure_cookie("email").decode("utf-8"))
             chatNames = dbhandler.getChatNameID(userEmail)
-            self.render("home.html", email = userEmail, chats = chatNames)
+            if dbhandler.checkAdmin(dbhandler.getUserID(userEmail)['ID']) == True:
+                self.render("homeAdmin.html", email = userEmail, chats = chatNames, messages = [])
+            else:
+                self.render("home.html", email = userEmail, chats = chatNames)
+
+class NewUserHandler(BaseHandler):
+    def post(self):
+        info = []
+        for argument in ["email1", "email2", "userName", "userPass1", "userPass2"]:
+            info.append(self.get_argument(argument))
+        logging.info("Attempt to add new user: {0}".format(info))
+        userEmail = (self.get_secure_cookie("email").decode("utf-8"))
+        chatNames = dbhandler.getChatNameID(userEmail)
+        alerts = []
+        if self.get_argument("email1") != self.get_argument("email2"):
+            alerts.append("Emails do not match")
+            if self.get_argument("userPass1") != self.get_argument("userPass2"):
+                alerts.append("Passwords do not match")
+                self.render("homeAdmin.html", email = userEmail, chats = chatNames, alerts = alerts)
+            else:
+                self.render("homeAdmin.html", email = userEmail, chats = chatNames, alerts = alerts)
+        elif self.get_argument("userPass1") != self.get_argument("userPass2"):
+            alerts.append("Passwords do not match")
+            self.render("homeAdmin.html", email = userEmail, chats = chatNames, alerts = alerts)
+        else:
+            userID = dbhandler.getUserID(userEmail)
+            newEmail = self.get_argument("email1")
+            name = self.get_argument("userName")
+            salt = (bcrypt.gensalt()).decode("utf-8")
+            password = (hashPwd(self.get_argument("userPass1"), salt)).decode("utf-8")
+            if dbhandler.addNewUser(userID, newEmail, name, password, salt) == True:
+                self.render("homeAdmin.html", email = userEmail, chats = chatNames, alerts = ["Success",])
+            else:
+                logging.error("Failed to add a new user")
+                self.render("homeAdmin.html", email = userEmail, chats = chatNames, alerts = ["Failed to add new user",])
+
 
 # Class to handle all url's beginning with "/url/".
 class ChatHandler(BaseHandler):
@@ -150,7 +185,8 @@ def hashPwd(pwd, salt):
 enable_pretty_logging()
 app = tornado.web.Application(
     [(r"/", RootHandler), (r"/login", LoginHandler), (r"/logout", LogoutHandler),
-     (r"/home", HomeHandler), (r"/chat/(.*)", ChatHandler), (r"/socket/(.*)", WSocketHandler),],
+     (r"/home", HomeHandler), (r"/chat/(.*)", ChatHandler), (r"/socket/(.*)", WSocketHandler),
+     (r"/a/newUser", NewUserHandler),],
     # Set the path where tornado will find the html templates
     template_path = os.path.join(os.path.dirname(__file__), "templates"),
     static_path = os.path.join(os.path.dirname(__file__), "static"),
