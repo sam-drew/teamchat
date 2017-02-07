@@ -21,6 +21,13 @@
         </table>
     </div>
     <br/>
+    <div id="alerts">
+        <table>
+        {% for alert in alerts %}
+            <tr>
+                <td>{{ alert }}</td>
+            </tr>
+        {% end %}
     <div id="newUserForm">
         <form action="/a/newUser" method="post">
             <table>

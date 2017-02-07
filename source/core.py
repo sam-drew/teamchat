@@ -55,7 +55,7 @@ class HomeHandler(BaseHandler):
             userEmail = (self.get_secure_cookie("email").decode("utf-8"))
             chatNames = dbhandler.getChatNameID(userEmail)
             if dbhandler.checkAdmin(dbhandler.getUserID(userEmail)['ID']) == True:
-                self.render("homeAdmin.html", email = userEmail, chats = chatNames, messages = [])
+                self.render("homeAdmin.html", email = userEmail, chats = chatNames, alerts = [])
             else:
                 self.render("home.html", email = userEmail, chats = chatNames)
 
@@ -72,22 +72,28 @@ class NewUserHandler(BaseHandler):
             alerts.append("Emails do not match")
             if self.get_argument("userPass1") != self.get_argument("userPass2"):
                 alerts.append("Passwords do not match")
+                logging.info("Failed to add new user; neither match")
                 self.render("homeAdmin.html", email = userEmail, chats = chatNames, alerts = alerts)
             else:
                 self.render("homeAdmin.html", email = userEmail, chats = chatNames, alerts = alerts)
+                logging.info("Failed to add new user; emails don't match")
         elif self.get_argument("userPass1") != self.get_argument("userPass2"):
             alerts.append("Passwords do not match")
+            logging.info("Failed to add new user; pwds don't match")
             self.render("homeAdmin.html", email = userEmail, chats = chatNames, alerts = alerts)
         else:
-            userID = dbhandler.getUserID(userEmail)
+            userID = dbhandler.getUserID(userEmail)['ID']
             newEmail = self.get_argument("email1")
             name = self.get_argument("userName")
             salt = (bcrypt.gensalt()).decode("utf-8")
             password = (hashPwd(self.get_argument("userPass1"), salt)).decode("utf-8")
-            if dbhandler.addNewUser(userID, newEmail, name, password, salt) == True:
+            returnValue = dbhandler.addNewUser(userID, newEmail, name, password, salt)
+            if returnValue == True:
                 self.render("homeAdmin.html", email = userEmail, chats = chatNames, alerts = ["Success",])
+                logging.info("Added new user successfully")
             else:
                 logging.error("Failed to add a new user")
+                logging.error(returnValue)
                 self.render("homeAdmin.html", email = userEmail, chats = chatNames, alerts = ["Failed to add new user",])
 
 
