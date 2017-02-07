@@ -110,14 +110,18 @@ class ChatHandler(BaseHandler):
                 userID = dbhandler.getUserID(userEmail)['ID']
                 if dbhandler.checkChatPrivileges(userID, link) != False:
                     messageList = dbhandler.getRecentMessages(link)
+                    isAdmin = dbhandler.checkChatPrivileges(userID, link)
                     if messageList != False:
                         messageList.reverse()
                         for m in messageList:
                             userName = dbhandler.getUserName(m['memberID'])
                             m['uName'] = userName['name']
-                        self.render("chat.html", messages = messageList, chatname = link)
                     else:
-                        self.render("chat.html", messages = [], chatname = link)
+                        messageList = []
+                    if isAdmin != False:
+                        self.render("chatAdmin.html", messages = messageList, chatname = link)
+                    else:
+                        self.render("chat.html", messages = messageList, chatname = link)
                 else:
                     self.redirect("/home")
             else:
