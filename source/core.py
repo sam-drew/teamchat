@@ -60,6 +60,9 @@ class HomeHandler(BaseHandler):
                 self.render("home.html", email = userEmail, chats = chatNames)
 
 class NewUserHandler(BaseHandler):
+    def get(self):
+        self.redirect("/home")
+        
     def post(self):
         info = []
         for argument in ["email1", "email2", "userName", "userPass1", "userPass2"]:
