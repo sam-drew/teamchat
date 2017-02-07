@@ -258,7 +258,10 @@ def getRecentMessages(chatID):
             sql = ("SELECT ID, content, ts, memberID FROM messages WHERE memberID IN ({0}) ORDER BY ID DESC LIMIT 25")
             cursor.execute((sql.format(allMembers).replace("[", "").replace("]", "")))
             messages = cursor.fetchall()
-            return(messages)
+            if messages != ():
+                return(messages)
+            else:
+                return(False)
     except Exception as e:
         return("Error: {0}. Error code is {1}".format(e, e.args[0]))
     finally:

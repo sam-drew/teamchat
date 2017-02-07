@@ -62,7 +62,7 @@ class HomeHandler(BaseHandler):
 class NewUserHandler(BaseHandler):
     def get(self):
         self.redirect("/home")
-        
+
     def post(self):
         info = []
         for argument in ["email1", "email2", "userName", "userPass1", "userPass2"]:
@@ -110,11 +110,14 @@ class ChatHandler(BaseHandler):
                 userID = dbhandler.getUserID(userEmail)['ID']
                 if dbhandler.checkChatPrivileges(userID, link) != False:
                     messageList = dbhandler.getRecentMessages(link)
-                    messageList.reverse()
-                    for m in messageList:
-                        userName = dbhandler.getUserName(m['memberID'])
-                        m['uName'] = userName['name']
-                    self.render("chat.html", messages = messageList, chatname = link)
+                    if messageList != False:
+                        messageList.reverse()
+                        for m in messageList:
+                            userName = dbhandler.getUserName(m['memberID'])
+                            m['uName'] = userName['name']
+                        self.render("chat.html", messages = messageList, chatname = link)
+                    else:
+                        self.render("chat.html", messages = [], chatname = link)
                 else:
                     self.redirect("/home")
             else:
