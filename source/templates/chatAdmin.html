@@ -13,6 +13,21 @@
     </div>
     <br/>
     <div>
+        <form method="post" id="userAdd" action="">
+            <table>
+                <tr>
+                    <td>new users's email</td>
+                </tr>
+                <tr>
+                    <td><input name="newEmail" type="email" autocomplete="off"></td>
+                    <td><input type="submit" value="submit"></td>
+                </tr>
+            </table>
+            {% module xsrf_form_html() %}
+        </form>
+    </div>
+    <br/>
+    <div>
         <table id="messageList">
             {% for message in messages %}
                 <tr id="message{{ message['ID'] }}">

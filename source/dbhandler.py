@@ -148,6 +148,25 @@ def checkChatPrivileges(userID, chatID):
     finally:
         connection.close()
 
+# Function to check if the specified user of a chat is an admin of that chat.
+def checkChatAdmin(userID, chatID):
+    connection = makeConnection()
+    try:
+        with connection.cursor() as cursor:
+            sql = ("SELECT admin FROM members WHERE userID = {0} AND chatID = {1}")
+            cursor.execute(sql.format(userID, chatID))
+            isAdmin = cursor.fetchone()
+            if isAdmin == None:
+                return(False)
+            elif isAdmin['admin'] == 1:
+                return(True)
+            else:
+                return("ERROR: dbhandler.checkChatAdmin returned an incorrect value")
+    except Exception as e:
+        return("Error: {0}. Error code is {1}".format(e, e.args[0]))
+    finally:
+        connection.close()
+
 # Function to get a user's name by their memberID
 def getUserName(memberID):
     connection = makeConnection()
