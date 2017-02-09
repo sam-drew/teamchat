@@ -59,6 +59,7 @@ class HomeHandler(BaseHandler):
             else:
                 self.render("home.html", email = userEmail, chats = chatNames)
 
+# Class to handler a new user being added to the system.
 class NewUserHandler(BaseHandler):
     def get(self):
         self.redirect("/home")
@@ -100,17 +101,17 @@ class NewUserHandler(BaseHandler):
                 self.render("homeAdmin.html", email = userEmail, chats = chatNames, alerts = ["Failed to add new user",])
 
 
-# Class to handle all url's beginning with "/url/".
+# Class to handle all url's beginning with "/chat/".
 class ChatHandler(BaseHandler):
-    def get(self, link):
+    def get(self, url):
+        url = WSocketHandler.stripUrl(url)
         userEmail = self.get_secure_cookie("email")
         if userEmail != None:
             userEmail = userEmail.decode("utf-8")
             if dbhandler.checkEmail(userEmail) == True:
                 userID = dbhandler.getUserID(userEmail)['ID']
-                if dbhandler.checkChatPrivileges(userID, link) != False:
-                    messageList = dbhandler.getRecentMessages(link)
-                    isAdmin = dbhandler.checkChatPrivileges(userID, link)
+                if dbhandler.checkChatPrivileges(userID, url) != False:
+                    messageList = dbhandler.getRecentMessages(url)
                     if messageList != False:
                         messageList.reverse()
                         for m in messageList:
@@ -118,16 +119,36 @@ class ChatHandler(BaseHandler):
                             m['uName'] = userName['name']
                     else:
                         messageList = []
-                    if isAdmin != False:
-                        self.render("chatAdmin.html", messages = messageList, chatname = link)
+                    isAdmin = dbhandler.checkChatAdmin(userID, url)
+                    if isAdmin == True:
+                        self.render("chatAdmin.html", messages = messageList, chatname = url, signuplink = url)
                     else:
-                        self.render("chat.html", messages = messageList, chatname = link)
+                        self.render("chat.html", messages = messageList, chatname = url)
                 else:
                     self.redirect("/home")
             else:
                 self.redirect("/")
         else:
             self.redirect("/")
+
+# Class to handle adding an existing user to a new chat.
+class NewChatUserHandler(BaseHandler):
+    def post(self, url):
+        newEmail = self.get_argument("newEmail")
+        doesEmailExist = dbhandler.checkEmail(newEmail)
+        # If the email exists, procede to check if the actioner is admin etc.
+        if doesEmailExist == 1:
+            chatID = WSocketHandler.stripUrl(url)
+            actioningUserEmail = self.get_secure_cookie("email").decode("utf-8")
+            actioningUserID = dbhandler.getUserID(actioningUserEmail)['ID']
+            isAdmin = dbhandler.checkChatAdmin(actioningUserID, url)
+            if isAdmin == True:
+                newUserID = dbhandler.getUserID(newEmail)['ID']
+                dbhandler.setPrivileges(newUserID, {chatID: False,})
+            else:
+                self.redirect("/chat/{0}".format(chatID))
+        else:
+            self.redirect("/chat/{0}".format(chatID))
 
 # Class to handle the WebSocket connections.
 class WSocketHandler(tornado.websocket.WebSocketHandler, BaseHandler):
@@ -202,7 +223,7 @@ enable_pretty_logging()
 app = tornado.web.Application(
     [(r"/", RootHandler), (r"/login", LoginHandler), (r"/logout", LogoutHandler),
      (r"/home", HomeHandler), (r"/chat/(.*)", ChatHandler), (r"/socket/(.*)", WSocketHandler),
-     (r"/a/newUser", NewUserHandler),],
+     (r"/a/newUser", NewUserHandler), (r"/a/newChatUser/(.*)", NewChatUserHandler),],
     # Set the path where tornado will find the html templates
     template_path = os.path.join(os.path.dirname(__file__), "templates"),
     static_path = os.path.join(os.path.dirname(__file__), "static"),
