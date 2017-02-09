@@ -1,7 +1,58 @@
-div {
-    padding: 5px;
+body {
+  padding-top: 25px;
+  padding-bottom: 40px;
 }
-a {
-    color: #000000;
-    text-decoration: none;
+
+.form-login {
+  max-width: 330px;
+  margin: 0 auto;
+}
+
+.form-login .form-control {
+  position: relative;
+  height: auto;
+  -webkit-box-sizing: border-box;
+     -moz-box-sizing: border-box;
+          box-sizing: border-box;
+  padding: 10px;
+  font-size: 16px;
+}
+.form-login .form-control:focus {
+  z-index: 2;
+}
+.form-login input[type="email"] {
+  margin-bottom: -1px;
+  border-bottom-right-radius: 0;
+  border-bottom-left-radius: 0;
+}
+.form-login input[type="password"] {
+  margin-bottom: 10px;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+#landingpage {
+    padding: 10px;
+    padding-top: 0px;
+    padding-bottom: 0px;
+    width: 200px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.form-loginbutton {
+    padding-top: 10px;
+}
+
+.form-newuser {
+    max-width: 330px;
+    padding-top: 10px;
+}
+
+.form-notlogout {
+    padding-top: 10px;
+}
+
+#chatList {
+    padding-top: 10px;
 }

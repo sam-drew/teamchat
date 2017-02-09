@@ -2,36 +2,28 @@
 <html>
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>TeamChat</title>
     <link rel="stylesheet" href="{{ static_url("style.css")}}">
+    <link rel="stylesheet" href="{{ static_url("bootstrap.min.css")}}">
 </head>
 <body>
-    <div id="greeting">
-        <p>
+    <div class="container">
+        <div>
             Hello, {{ email }}
-        </p>
+        </div>
+        <div id="chatList">
+            <table>
+                {% for chat in chats %}
+                    <tr>
+                        <td><a href="/chat/{{ chat['ID'] }}">{{ chat['name'] }}</a></td>
+                    </tr>
+                {% end %}
+            </table>
+        </div>
     </div>
-    <div id="chatList">
-        <table>
-            {% for chat in chats %}
-                <tr>
-                    <td><a href="/chat/{{ chat['ID'] }}">{{ chat['name'] }}</a></td>
-                </tr>
-            {% end %}
-        </table>
-    </div>
-    <div id="alerts">
-        <table>
-        {% for alert in alerts %}
-            <tr>
-                <td>{{ alert }}</td>
-            </tr>
-        {% end %}
-        </table>
-    </div>
-    <br/>
-    <div id="newUserForm">
-        <form action="/a/newUser" method="post">
+    <div class="container">
+        <form class="form-newuser" action="/a/newUser" method="post">
             <table>
                 <tr>
                     <td>new user's email</td>
@@ -64,7 +56,16 @@
             {% module xsrf_form_html() %}
         </form>
     </div>
-    <div id="logoutForm">
+    <div class="container" id="alerts">
+        <table>
+        {% for alert in alerts %}
+            <tr>
+                <td>{{ alert }}</td>
+            </tr>
+        {% end %}
+        </table>
+    </div>
+    <div class="container form-notlogout">
         <form action="/logout" method="post">
             <input type="submit" value="logout">
             {% module xsrf_form_html() %}

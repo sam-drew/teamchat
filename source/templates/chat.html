@@ -2,17 +2,18 @@
 <html>
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ chatname }}</title>
     <link rel="stylesheet" href="{{ static_url("style.css")}}">
 </head>
 <body>
-    <div id="backButton">
+    <div class="container" id="backButton">
         <form action="/home">
             <input type="submit" value="back"/>
         </form>
     </div>
     <br/>
-    <div>
+    <div class="container">
         <table id="messageList">
             {% for message in messages %}
                 <tr id="message{{ message['ID'] }}">
@@ -23,7 +24,7 @@
         </table>
     </div>
     <br/>
-    <div id="messageInput">
+    <div class="container" id="messageInput">
         <form method="post" id="messageForm" action="">
             <table>
                 <tr>
