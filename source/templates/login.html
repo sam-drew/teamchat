@@ -4,13 +4,13 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>TeamChat</title>
+    <!--<link rel="stylesheet" href="{{ static_url("bootstrap.min.css") }}">-->
     <link rel="stylesheet" href="{{ static_url("style.css")}}">
-    <link rel="stylesheet" href="{{ static_url("bootstrap.min.css") }}">
 </head>
 <body>
     <div class="container">
         <form class="form-login" action="/login" method="post">
-            <h3 class="form-login-heading">sign in</h2>
+            <h1 class="heading">SIGN IN</h1>
             <input class="form-control" type="text" name="email" autocomplete="off" placeholder="email" required>
             <input class="form-control" type="password" name="password" placeholder="password" required>
             <input type="submit" value="sign in">

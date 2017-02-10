@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ chatname }}</title>
     <link rel="stylesheet" href="{{ static_url("style.css")}}">
+    <!--<link rel="stylesheet" href="{{ static_url("bootstrap.min.css")}}">-->
 </head>
 <body>
     <div class="container" id="backButton">
@@ -13,13 +14,13 @@
         </form>
     </div>
     <div class="container">
-        <form class="form-adduser"method="post" id="userAdd" action="">
+        <form class="form-adduser"method="post" id="userAdd" action="/a/newChatUser/{{ signuplink }}">
             <table>
                 <tr>
                     <td>new users's email</td>
                 </tr>
                 <tr>
-                    <td><input class="form-control" name="newEmail" type="email" autocomplete="off"></td>
+                    <td><input name="newEmail" type="email" autocomplete="off"></td>
                     <td><input class="btn-block" type="submit" value="submit"></td>
                 </tr>
             </table>

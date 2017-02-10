@@ -1,5 +1,6 @@
 $(document).ready(function() {
     messageHandler.start();
+    document.getElementById('messageInput').scrollIntoView();
     $("#messageForm").on("submit", function() {
         newMessage($(this));
         return false;
@@ -38,6 +39,7 @@ var messageHandler = {
         messageHandler.socket.onmessage = function(event) {
             var newMessage = $(JSON.parse(event.data).html);
             $('#messageList').append(newMessage)
+            document.getElementById('messageInput').scrollIntoView();
         }
     }
 };

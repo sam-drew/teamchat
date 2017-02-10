@@ -1,6 +1,11 @@
 body {
-  padding-top: 25px;
-  padding-bottom: 40px;
+    background-color: inherit;
+    padding-top: 25px;
+    padding-bottom: 40px;
+}
+
+html {
+    font-family: 'Helvetica';
 }
 
 .form-login {
@@ -35,13 +40,26 @@ body {
     padding: 10px;
     padding-top: 0px;
     padding-bottom: 0px;
-    width: 200px;
-    margin: 0 auto;
+    max-width: 250px;
     text-align: center;
 }
 
 .form-loginbutton {
     padding-top: 10px;
+}
+
+.form-loginbutton #loginButton {
+    background-color: #ffffff;
+    border: none;
+    display: inline-block;
+    text-decoration: none;
+    text-align: center;
+
+}
+
+.heading {
+    font-family: 'Helvetica';
+    font-weight: bolder;
 }
 
 .form-newuser {
@@ -53,6 +71,22 @@ body {
     padding-top: 10px;
 }
 
+.form-adduser {
+    padding-bottom: 10px;
+    padding-top: 10px;
+}
+
 #chatList {
     padding-top: 10px;
+}
+
+#messageDiv {
+    position: relative;
+    top: 0;
+}
+
+#messageInput {
+    position: sticky;
+    bottom: -5;
+    padding-bottom: 1;
 }
