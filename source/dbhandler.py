@@ -97,13 +97,16 @@ def setPrivileges(userID, chats):
             # Iterate over the keys in the dict
             for chatID in chats:
                 # If the key's value is True (i.e. they are admin of that chat),
-                # insert a record to reflect this, else omit 'admin' value
-                if chats[chatID] == True:
-                    sql = ("INSERT INTO members (chatID, userID, admin) VALUES ('{0}', '{1}', '{2}')")
-                    cursor.execute(sql.format(chatID, userID, True))
+                # insert a record to reflect this, else omit 'admin' value.
+                if checkChatPrivileges(userID, chatID) == False:
+                    if chats[chatID] == True:
+                        sql = ("INSERT INTO members (chatID, userID, admin) VALUES ('{0}', '{1}', '{2}')")
+                        cursor.execute(sql.format(chatID, userID, True))
+                    else:
+                        sql = ("INSERT INTO members (chatID, userID) VALUES ('{0}', '{1}')")
+                        cursor.execute(sql.format(chatID, userID))
                 else:
-                    sql = ("INSERT INTO members (chatID, userID) VALUES ('{0}', '{1}')")
-                    cursor.execute(sql.format(chatID, userID))
+                    return(False)
         connection.commit()
     except Exception as e:
         return("Error: {0}. Error code is {1}".format(e, e.args[0]))
@@ -297,3 +300,22 @@ def addNewUser(userID, email, name, password, salt):
             return(isAdmin)
     except Exception as e:
         return("Error: {0}. Error code is {1}".format(e, e.args[0]))
+    finally:
+        connection.close()
+
+# Function to add a new chat to the database.
+def addNewChat(name):
+    try:
+        connection = makeConnection()
+        with connection.cursor() as cursor:
+            sql = ("INSERT INTO chats (name) VALUES ('{0}')")
+            cursor.execute(sql.format(name))
+        connection.commit()
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT LAST_INSERT_ID()")
+            chatID = cursor.fetchone()['LAST_INSERT_ID()']
+            return(chatID)
+    except Exception as e:
+        return("Error: {0}. Error code is {1}".format(e, e.args[0]))
+    finally:
+        connection.close()
