@@ -22,6 +22,7 @@
     </div>
     <div class="container">
         <form class="form-newuser" action="/a/newUser" method="post">
+            <h2>Add new user to system</h2>
             <table>
                 <tr>
                     <td>new user's email</td>
@@ -63,6 +64,33 @@
         {% end %}
         </table>
     </div>
+    <div class="container">
+        <form action="/a/newChat" method="post">
+            <table>
+                <tr>
+                    <td><h2>New Chat</h2></td>
+                </tr>
+                <tr>
+                    <td>New Chat's Name</td>
+                </tr>
+                <tr>
+                    <td><input class="form-control" name="newChatName" type="text" autocomplete="off" required></td>
+                </tr>
+                <tr>
+                    <td>Initial User (not yourself)</td>
+                </tr>
+                <tr>
+                    <td><input class="form-control" name="initialChatUser" type="email" autocomplete="off" required></td>
+                </tr>
+                <tr>
+                    <td><input class="form-control" type="submit" value="create"></td>
+                </tr>
+            </table>
+            <input type="hidden" name="next" value="{{ request.path }}">
+            {% module xsrf_form_html() %}
+        </form>
+    </div>
+    </br>
     <div class="container form-notlogout">
         <form action="/logout" method="post">
             <input type="submit" value="logout">
