@@ -65,6 +65,7 @@ class NewUserHandler(BaseHandler):
         self.redirect("/home")
 
     def post(self):
+        # Form all elements from form into a list.
         info = []
         for argument in ["email1", "email2", "userName", "userPass1", "userPass2"]:
             info.append(self.get_argument(argument))
@@ -114,6 +115,7 @@ class ChatHandler(BaseHandler):
                     messageList = dbhandler.getRecentMessages(url)
                     if messageList != False:
                         messageList.reverse()
+                        # For every message, add the human name.
                         for m in messageList:
                             userName = dbhandler.getUserName(m['memberID'])
                             m['uName'] = userName['name']
@@ -131,20 +133,50 @@ class ChatHandler(BaseHandler):
         else:
             self.redirect("/")
 
+# Class to handler adding a new chat to the system.
+class NewChatHandler(BaseHandler):
+    def get(self):
+        self.redirect("/home")
+
+    def post(self):
+        adminUserEmail = self.get_secure_cookie("email").decode("utf-8")
+        adminUserID = dbhandler.getUserID(adminUserEmail)['ID']
+        if dbhandler.checkAdmin(adminUserID) == True:
+            chatName = self.get_argument("newChatName")
+            chatID = dbhandler.addNewChat(chatName)
+            # Chat ID's should always be an integer, if not, probably error.
+            if isinstance(chatID, int) == True:
+                userEmail = self.get_argument("initialChatUser")
+                if dbhandler.checkEmail(userEmail) == 1:
+                    userID = dbhandler.getUserID(userEmail)['ID']
+                    url = ("/chat/{0}".format(chatID))
+                    self.redirect(url)
+                else:
+                    url = ("/chat/{0}".format(chatID))
+                    self.redirect(url)
+            else:
+                logging.error(chatID)
+        else:
+            self.redirect("/home")
+
 # Class to handle adding an existing user to a new chat.
 class NewChatUserHandler(BaseHandler):
+    def get(self, url):
+        self.redirect("/chat/{0}".format(WSocketHandler.stripUrl(url)))
+
     def post(self, url):
         newEmail = self.get_argument("newEmail")
         doesEmailExist = dbhandler.checkEmail(newEmail)
+        chatID = WSocketHandler.stripUrl(url)
         # If the email exists, procede to check if the actioner is admin etc.
         if doesEmailExist == 1:
-            chatID = WSocketHandler.stripUrl(url)
             actioningUserEmail = self.get_secure_cookie("email").decode("utf-8")
             actioningUserID = dbhandler.getUserID(actioningUserEmail)['ID']
             isAdmin = dbhandler.checkChatAdmin(actioningUserID, url)
             if isAdmin == True:
                 newUserID = dbhandler.getUserID(newEmail)['ID']
                 dbhandler.setPrivileges(newUserID, {chatID: False,})
+                self.redirect("/chat/{0}".format(chatID))
             else:
                 self.redirect("/chat/{0}".format(chatID))
         else:
@@ -223,7 +255,8 @@ enable_pretty_logging()
 app = tornado.web.Application(
     [(r"/", RootHandler), (r"/login", LoginHandler), (r"/logout", LogoutHandler),
      (r"/home", HomeHandler), (r"/chat/(.*)", ChatHandler), (r"/socket/(.*)", WSocketHandler),
-     (r"/a/newUser", NewUserHandler), (r"/a/newChatUser/(.*)", NewChatUserHandler),],
+     (r"/a/newUser", NewUserHandler), (r"/a/newChatUser/(.*)", NewChatUserHandler),
+     (r"/a/newChat", NewChatHandler),],
     # Set the path where tornado will find the html templates
     template_path = os.path.join(os.path.dirname(__file__), "templates"),
     static_path = os.path.join(os.path.dirname(__file__), "static"),

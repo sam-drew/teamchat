@@ -101,7 +101,7 @@ def setPrivileges(userID, chats):
                 if checkChatPrivileges(userID, chatID) == False:
                     if chats[chatID] == True:
                         sql = ("INSERT INTO members (chatID, userID, admin) VALUES ('{0}', '{1}', '{2}')")
-                        cursor.execute(sql.format(chatID, userID, True))
+                        cursor.execute(sql.format(chatID, userID, 1))
                     else:
                         sql = ("INSERT INTO members (chatID, userID) VALUES ('{0}', '{1}')")
                         cursor.execute(sql.format(chatID, userID))
