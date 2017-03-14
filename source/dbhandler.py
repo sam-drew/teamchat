@@ -156,7 +156,7 @@ def checkChatAdmin(userID, chatID):
     connection = makeConnection()
     try:
         with connection.cursor() as cursor:
-            sql = ("SELECT admin FROM members WHERE userID = {0} AND chatID = {1}")
+            sql = ("SELECT admin FROM members WHERE userID = '{0}' AND chatID = '{1}'")
             cursor.execute(sql.format(userID, chatID))
             isAdmin = cursor.fetchone()
             if isAdmin == None:
@@ -300,8 +300,6 @@ def addNewUser(userID, email, name, password, salt):
             return(isAdmin)
     except Exception as e:
         return("Error: {0}. Error code is {1}".format(e, e.args[0]))
-    finally:
-        connection.close()
 
 # Function to add a new chat to the database.
 def addNewChat(name):
