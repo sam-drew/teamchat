@@ -1,5 +1,7 @@
 import unittest
 from selenium import webdriver
+import pymysql
+import time
 
 import dbhandler
 
@@ -7,18 +9,18 @@ class TestDBHandler(unittest.TestCase):
     # Function 'makeConnection()' is tested by proxy throughit's use in all
     # other functions being tested.
     def test_CheckEmail(self):
-        self.assertEqual(False, dbhandler.checkEmail("james@email.com"))
+        self.assertEqual(1, dbhandler.checkEmail("james@email.com"))
 
     def test_GetLogin(self):
-        self.assertEqual({'password': "$2b$12$geZhg2ZjprZ16HbTgyq./OwefllzO/Dv0f7uhkIGbmmo.2eBDtkMy",
-                        'salt': "$2b$12$geZhg2ZjprZ16HbTgyq./O"}, dbhandler.getLogin("james@email.com"))
+        self.assertEqual({'password': "$2b$12$7DO/OjbCh7SBdzBkhgfXD.DcL3GbqzxOROdTSrjQDCJvKjbmLWJwy",
+                        'salt': "$2b$12$7DO/OjbCh7SBdzBkhgfXD."}, dbhandler.getLogin("james@email.com"))
 
     def test_checkAdmin(self):
         self.assertTrue(dbhandler.checkAdmin(1))
-        self.assertEqual(0, dbhandler.checkAdmin(2)[0]['admin'])
+        self.assertFalse(dbhandler.checkAdmin(2))
 
     def test_getUserName(self):
-        self.assertEqual("jack", dbhandler.getUserName(2)['name'])
+        self.assertEqual("james", dbhandler.getUserName(2)['name'])
         self.assertEqual("janet", dbhandler.getUserName(5)['name'])
 
     def test_getChatName(self):
@@ -27,8 +29,7 @@ class TestDBHandler(unittest.TestCase):
 
     def test_getMemberIDs(self):
         ids = dbhandler.getMemberIDs(2)
-        self.assertEqual(3, ids[0]['ID'])
-        self.assertEqual(4, ids[1]['ID'])
+        self.assertEqual(5, ids[0])
 
     def test_getUserID(self):
         self.assertEqual(4, dbhandler.getUserID("jane@email.com")['ID'])
@@ -39,16 +40,190 @@ class TestDBHandler(unittest.TestCase):
         self.assertEqual('admin', chats[1]['name'])
 
     def test_getChatNameID(self):
-        chats = dbhandler.getChats("james@email.com")
+        chats = dbhandler.getChats(1)
         self.assertEqual('finance', chats[0]['name'])
         self.assertEqual('admin', chats[1]['name'])
-        
-#class TestCore(unittest.TestCase):
-#    def test_loginPage(self):
-#        driver = webdriver.Firefox()
-#        driver.get("http://localhost:8080/")
+
+    def test_checkChatPrivileges(self):
+        self.assertFalse(dbhandler.checkChatPrivileges(1, 2))
+        self.assertEqual(2, dbhandler.checkChatPrivileges(1, 1)['ID'])
+
+    def test_checkChatAdmin(self):
+        self.assertTrue(dbhandler.checkChatAdmin(1, 1))
+        self.assertFalse(dbhandler.checkChatAdmin(2, 4))
+
+    def test_getUserNameFromID(self):
+        self.assertEqual('james', dbhandler.getUserNameFromID(1)['name'])
+
+    def test_getChatNameID(self):
+        info = dbhandler.getChatNameID("james@email.com")
+        self.assertEqual(1, info[0]['ID'])
+        self.assertEqual('admin', info[1]['name'])
+
+    def test_getRecentMessages(self):
+        messages = dbhandler.getRecentMessages(2)
+        self.assertEqual('TEST', messages[0]['content'])
+        self.assertEqual(3, messages[0]['ID'])
+
+    #FUNCTIONS THAT SET / SAVE DATA.
+
+    def test_setUserInfo(self):
+        email = "TEST@TESTEMAIL.COM"
+        name = "TESTNAME"
+        password = "$2b$12$IB/erL6YpE48btg6pQnDF.8WhCE4x4qw0YppmfD1L3w4XdJsI.xFW"
+        salt = "$2b$12$IB/erL6YpE48btg6pQnDF."
+        dbhandler.setUserInfo(email, name, password, salt)
+        self.assertEqual(1, dbhandler.checkEmail(email))
+        info = dbhandler.getLogin(email)
+        self.assertEqual(info['password'], password)
+        self.assertEqual(info['salt'], salt)
+        ID = dbhandler.getUserID(email)['ID']
+        self.assertEqual(name, dbhandler.getUserNameFromID(ID)['name'])
+        # Clean up the mess made here ^
+        connection = dbhandler.makeConnection()
+        try:
+            with connection.cursor() as cursor:
+                sql = ("DELETE FROM users WHERE email = '{0}'")
+                cursor.execute(sql.format(email))
+            connection.commit()
+        except Exception as e:
+            return("Error: {0}. Error code is {1}".format(e, e.args[0]))
+        finally:
+            connection.close()
+
+    def test_setMessage(self):
+        messageID = dbhandler.setMessage(1, 1, "TEST_MESSAGE")
+        returnMessages = dbhandler.getRecentMessages(1)
+        message = returnMessages[0]
+        self.assertEqual("TEST_MESSAGE", message['content'])
+        # Clean up the mess made here ^
+        connection = dbhandler.makeConnection()
+        try:
+            with connection.cursor() as cursor:
+                sql = ("DELETE FROM messages WHERE ID = {0}")
+                cursor.execute(sql.format(messageID))
+            connection.commit()
+        except Exception as e:
+            return("Error: {0}. Error code is {1}".format(e, e.args[0]))
+        finally:
+            connection.close()
+
+    def test_addNewUser(self):
+        email = "TEST@TESTEMAIL.COM"
+        name = "TESTNAME"
+        password = "$2b$12$IB/erL6YpE48btg6pQnDF.8WhCE4x4qw0YppmfD1L3w4XdJsI.xFW"
+        salt = "$2b$12$IB/erL6YpE48btg6pQnDF."
+        userIDAdmin = 1
+        self.assertTrue(dbhandler.addNewUser(userIDAdmin, email, name, password, salt))
+        self.assertEqual(1, dbhandler.checkEmail(email))
+        info = dbhandler.getLogin(email)
+        self.assertEqual(info['password'], password)
+        self.assertEqual(info['salt'], salt)
+        ID = dbhandler.getUserID(email)['ID']
+        self.assertEqual(name, dbhandler.getUserNameFromID(ID)['name'])
+
+        userID = 2
+        self.assertFalse(dbhandler.addNewUser(userID, email, name, password, salt))
+        # Clean up the mess made here ^
+        connection = dbhandler.makeConnection()
+        try:
+            with connection.cursor() as cursor:
+                sql = ("DELETE FROM users WHERE email = '{0}'")
+                cursor.execute(sql.format(email))
+            connection.commit()
+        except Exception as e:
+            return("Error: {0}. Error code is {1}".format(e, e.args[0]))
+        finally:
+            connection.close()
+
+    def test_addNewChat(self):
+        name = "TESTCHAT"
+        chatID = dbhandler.addNewChat(name)
+        self.assertEqual(name, dbhandler.getChatName(chatID)['name'])
+        # Clean up mess
+        connection = dbhandler.makeConnection()
+        try:
+            with connection.cursor() as cursor:
+                sql = ("DELETE FROM chats WHERE ID = {0}")
+                cursor.execute(sql.format(chatID))
+            connection.commit()
+        except Exception as e:
+            return("Error: {0}. Error code is {1}".format(e, e.args[0]))
+        finally:
+            connection.close()
+
+    def test_setPrivileges(self):
+        userID = 4
+        chats = {2: False,}
+        dbhandler.setPrivileges(userID, chats)
+        self.assertTrue(isinstance(dbhandler.checkChatPrivileges(userID, 2)['ID'], int))
+        # Clean up mess
+        connection = dbhandler.makeConnection()
+        try:
+            with connection.cursor() as cursor:
+                sql = ("DELETE FROM members WHERE userID = 4 AND chatID = 2")
+                cursor.execute(sql)
+            connection.commit()
+        except Exception as e:
+            return("Error: {0}. Error code is {1}".format(e, e.args[0]))
+        finally:
+            connection.close()
+
+class TestUI(unittest.TestCase):
+
+    def test_indexPage(self):
+        self.maxDiff = None
+        # Read the file into a single string
+        template = open("templates/index.html")
+        html = template.read()
+        template.close()
+        html = html.replace('\n', '')
+        html = html.replace(' ', '')
+        html = html.replace('<!DOCTYPEhtml>', '')
+        # Initialise the browser using selenium
+        driver = webdriver.Firefox()
+        driver.get("http://localhost:8080/")
+        source = driver.page_source
+        driver.quit()
+        source = source.replace('\n', '')
+        source = source.replace(' ', '')
+        # Test equal
+        self.assertEqual(html, source)
 
 
+    def test_loginPageSource(self):
+        self.maxDiff = None
+        # Read the file into a single string
+        template = open("templates/login.html")
+        html = template.read()
+        template.close()
+        html = html.replace('\n', '')
+        html = html.replace(' ', '')
+        html = html.replace('<!DOCTYPEhtml>', '')
+        # Initialise the browser using selenium
+        driver = webdriver.Firefox()
+        driver.get("http://localhost:8080/login")
+        source = driver.page_source
+        driver.quit()
+        source = source.replace('\n', '')
+        source = source.replace(' ', '')
+        # Test equal
+        self.assertEqual(html, source)
+
+    def test_loginPageAction(self):
+        # Init the browser
+        driver = webdriver.Firefox()
+        driver.get("http://localhost:8080/login")
+        # Find the form elements and send information to them
+        emailInput = driver.find_element_by_id("emailInput")
+        emailInput.send_keys("james@email.com")
+        passwordInput = driver.find_element_by_id("passwordInput")
+        passwordInput.send_keys("password")
+        submitButton = driver.find_element_by_id("submit")
+        submitButton.click()
+        time.sleep(10)
+        self.assertEqual(driver.current_url, "http://localhost:8080/home")
+        driver.quit()
 
 if __name__ == "__main__":
     unittest.main()
