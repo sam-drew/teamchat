@@ -225,5 +225,69 @@ class TestUI(unittest.TestCase):
         self.assertEqual(driver.current_url, "http://localhost:8080/home")
         driver.quit()
 
+    def test_chatPageSource(self):
+        # Init the browser
+        driver = webdriver.Firefox()
+        driver.get("http://localhost:8080/login")
+        # Find the form elements and send information to them
+        emailInput = driver.find_element_by_id("emailInput")
+        emailInput.send_keys("james@email.com")
+        passwordInput = driver.find_element_by_id("passwordInput")
+        passwordInput.send_keys("password")
+        submitButton = driver.find_element_by_id("submit")
+        submitButton.click()
+        time.sleep(10)
+        driver.get("http://localhost:8080/chat/1")
+        source = driver.page_source
+        driver.quit()
+        source = source.replace('\n', '')
+        source = source.replace(' ', '')
+        # Get the template source
+        template = open("templates/chatAdmin.html")
+        html = template.read()
+        template.close()
+        html = html.replace('\n', '')
+        html = html.replace(' ', '')
+        html = html.replace('<!DOCTYPEhtml>', '')
+        # Test equal
+        self.assertEqual(html, source)
+
+    def test_sendMessageAction(self):
+        # Initialise two browser windows, and login with different accounts.
+        browser1 = webdriver.Firefox()
+        browser2 = webdriver.Firefox()
+        # Log browser1 into chatID 1 with userID 1.
+        browser1.get("http://localhost:8080/login")
+        emailInput = browser1.find_element_by_id("emailInput")
+        emailInput.send_keys("james@email.com")
+        passwordInput = browser1.find_element_by_id("passwordInput")
+        passwordInput.send_keys("password")
+        submitButton = browser1.find_element_by_id("submit")
+        submitButton.click()
+        time.sleep(10)
+        browser1.get("http://localhost:8080/chat/1")
+        # Log browser2 into chatID 1 with userID 2.
+        browser1.get("http://localhost:8080/login")
+        emailInput = browser2.find_element_by_id("emailInput")
+        emailInput.send_keys("jack@email.com")
+        passwordInput = browser2.find_element_by_id("passwordInput")
+        passwordInput.send_keys("password")
+        submitButton = browser2.find_element_by_id("submit")
+        submitButton.click()
+        time.sleep(10)
+        browser2.get("http://localhost:8080/chat/1")
+        # Check the original source of both chats as rendered.
+        b1OriginalHTML = browser1.page_source
+        b2OriginalHTML = browser2.page_source
+        # Send a message
+        messageInput = browser1.find_element_by_id("message")
+        messageInput.send_keys("TEST_MESSAGE")
+        messageInput.send_keys(Keys.RETURN)
+        time.sleep(5)
+        b1NewHTML = browser1.page_source
+        b2NewHTML = browser2.page_source
+        self.assertFalse(b1OriginalHTML == b1NewHTML)
+        self.assertFalse(b2OriginalHTML == b2NewHTML)
+
 if __name__ == "__main__":
     unittest.main()
