@@ -27,7 +27,7 @@
         <div id="messageInput">
             <form class="form-message" method="post" id="messageForm" action="">
                 <input name="body" id="message" type="text" autocomplete="off">
-                <input type="submit" value="send">
+                <input name="submit" type="submit" value="send">
                 <input type="hidden" name="next" value="{{ request.path }}">
                 {% module xsrf_form_html() %}
             </form>
