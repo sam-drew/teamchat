@@ -35,9 +35,9 @@ class LoginHandler(BaseHandler):
                 self.set_secure_cookie("email", self.get_argument("email"))
                 self.redirect("/home")
             else:
-                self.render("login.html", message = "bad info")
+                self.render("login.html", message = "Incorrect credentials supplied.")
         else:
-            self.render("login.html", message = "bad info")
+            self.render("login.html", message = "Incorrect credentials supplied.")
 
 # Class to handle logging out
 class LogoutHandler(BaseHandler):
