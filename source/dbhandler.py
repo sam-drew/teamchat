@@ -40,16 +40,11 @@ def setUserInfo(email, name, password, salt):
 # Function to check if the new sign-up's email is already in use, returns False
 # if not in use
 def checkEmail(email):
-    connection = pymysql.connect(host = "localhost",
-                                user = "root",
-                                password = "password",
-                                db = "comsciproj",
-                                charset = "utf8mb4",
-                                cursorclass = pymysql.cursors.DictCursor)
+    connection = makeConnection()
     try:
         with connection.cursor() as cursor:
             sql = ("SELECT email FROM users WHERE email = '{0}'")
-            return(not(cursor.execute(sql.format(email))))
+            return(cursor.execute(sql.format(email)))
     except Exception as e:
         return("Error: {0}. Error code is {1}".format(e, e.args[0]))
     finally:
@@ -57,12 +52,7 @@ def checkEmail(email):
 
 # Function to get the login information of a given account
 def getLogin(email):
-    connection = pymysql.connect(host = "localhost",
-                                user = "root",
-                                password = "password",
-                                db = "comsciproj",
-                                charset = "utf8mb4",
-                                cursorclass = pymysql.cursors.DictCursor)
+    connection = makeConnection()
     try:
         with connection.cursor() as cursor:
             sql = ("SELECT password, salt FROM users WHERE email = '{0}'")
@@ -79,24 +69,20 @@ def getLogin(email):
 
 # Function to set a new message in the database
 def setMessage(userID, chatID, content):
-    connection = pymysql.connect(host = "localhost",
-                                user = "root",
-                                password = "password",
-                                db = "comsciproj",
-                                charset = "utf8mb4",
-                                cursorclass = pymysql.cursors.DictCursor)
+    connection = makeConnection()
     try:
         with connection.cursor() as cursor:
             # Get the memberID of the related user and chat
             memberID = checkChatPrivileges(userID, chatID)
             if memberID != False:
                 # Insert new entry into the messages table with the memberID and message content
-                sql = ("INSERT INTO messages (content, memberID) VALUES ('{0}', '{1}')")
-                cursor.execute(sql.format(content, memberID))
-                return(True)
+                sql = ("INSERT INTO messages (content, memberID) VALUES ('{0}', {1})")
+                cursor.execute(sql.format(content, memberID['ID']))
+                lastID = connection.insert_id()
             else:
                 return(False)
         connection.commit()
+        return(lastID)
     except Exception as e:
         return("Error: {0}. Error code is {1}".format(e, e.args[0]))
     finally:
@@ -105,24 +91,22 @@ def setMessage(userID, chatID, content):
 # Function to set user privileges. Input user will be the userID, Input
 # chats will be a dict defined as chatID: admin? where admin is boolean
 def setPrivileges(userID, chats):
-    connection = pymysql.connect(host = "localhost",
-                                user = "root",
-                                password = "password",
-                                db = "comsciproj",
-                                charset = "utf8mb4",
-                                cursorclass = pymysql.cursors.DictCursor)
+    connection = makeConnection()
     try:
         with connection.cursor() as cursor:
             # Iterate over the keys in the dict
             for chatID in chats:
                 # If the key's value is True (i.e. they are admin of that chat),
-                # insert a record to reflect this, else omit 'admin' value
-                if chats[chatID] == True:
-                    sql = ("INSERT INTO members (chatID, userID, admin) VALUES ('{0}', '{1}', '{2}')")
-                    cursor.execute(sql.format(chatID, userID, True))
+                # insert a record to reflect this, else omit 'admin' value.
+                if checkChatPrivileges(userID, chatID) == False:
+                    if chats[chatID] == True:
+                        sql = ("INSERT INTO members (chatID, userID, admin) VALUES ('{0}', '{1}', '{2}')")
+                        cursor.execute(sql.format(chatID, userID, 1))
+                    else:
+                        sql = ("INSERT INTO members (chatID, userID) VALUES ('{0}', '{1}')")
+                        cursor.execute(sql.format(chatID, userID))
                 else:
-                    sql = ("INSERT INTO members (chatID, userID) VALUES ('{0}', '{1}')")
-                    cursor.execute(sql.format(chatID, userID))
+                    return(False)
         connection.commit()
     except Exception as e:
         return("Error: {0}. Error code is {1}".format(e, e.args[0]))
@@ -131,18 +115,17 @@ def setPrivileges(userID, chats):
 
 # Function to check if a user has admin privileges, returns True if true
 def checkAdmin(userID):
-    connection = pymysql.connect(host = "localhost",
-                                user = "root",
-                                password = "password",
-                                db = "comsciproj",
-                                charset = "utf8mb4",
-                                cursorclass = pymysql.cursors.DictCursor)
+    connection = makeConnection()
     try:
         with connection.cursor() as cursor:
-            sql = ("SELECT admin FROM members WHERE userID = '{0}'")
-            cursor.execute(sql.format(userID, chatID))
+            sql = ("SELECT admin FROM members WHERE userID = {0}")
+            cursor.execute(sql.format(userID))
             result = cursor.fetchall()
-            return(result)
+            admin = False
+            for r in result:
+                if r['admin'] == 1:
+                    admin = True
+            return(admin)
     except Exception as e:
         return("Error: {0}. Error code is {1}".format(e, e.args[0]))
     finally:
@@ -150,18 +133,17 @@ def checkAdmin(userID):
 
 # Function to check if a user has the the correct privileges to message a chat
 def checkChatPrivileges(userID, chatID):
-    connection = pymysql.connect(host = "localhost",
-                                user = "root",
-                                password = "password",
-                                db = "comsciproj",
-                                charset = "utf8mb4",
-                                cursorclass = pymysql.cursors.DictCursor)
+    connection = makeConnection()
     try:
         with connection.cursor() as cursor:
             sql = ("SELECT ID FROM members WHERE userID = '{0}' AND chatID = '{1}'")
             cursor.execute(sql.format(userID, chatID))
             if cursor != False:
-                return(cursor.fetchone())
+                returnVal = cursor.fetchone()
+                if returnVal == None:
+                    return(False)
+                else:
+                    return(returnVal)
             else:
                 return(False)
     except Exception as e:
@@ -169,17 +151,45 @@ def checkChatPrivileges(userID, chatID):
     finally:
         connection.close()
 
-# Function to get a user's name by their userID
-def getUserName(userID):
-    connection = pymysql.connect(host = "localhost",
-                                user = "root",
-                                password = "password",
-                                db = "comsciproj",
-                                charset = "utf8mb4",
-                                cursorclass = pymysql.cursors.DictCursor)
+# Function to check if the specified user of a chat is an admin of that chat.
+def checkChatAdmin(userID, chatID):
+    connection = makeConnection()
     try:
         with connection.cursor() as cursor:
-            sql = ("SELECT name FROM users WHERE ID = '{0}'")
+            sql = ("SELECT admin FROM members WHERE userID = '{0}' AND chatID = '{1}'")
+            cursor.execute(sql.format(userID, chatID))
+            isAdmin = cursor.fetchone()
+            if isAdmin == None:
+                return(False)
+            elif isAdmin['admin'] == 1:
+                return(True)
+            else:
+                return("ERROR: dbhandler.checkChatAdmin returned an incorrect value")
+    except Exception as e:
+        return("Error: {0}. Error code is {1}".format(e, e.args[0]))
+    finally:
+        connection.close()
+
+# Function to get a user's name by their memberID
+def getUserName(memberID):
+    connection = makeConnection()
+    try:
+        with connection.cursor() as cursor:
+            sql = ("SELECT users.name FROM users INNER JOIN members ON members.userID = users.ID WHERE members.ID = '{0}'")
+            cursor.execute(sql.format(memberID))
+            name = cursor.fetchone()
+            return(name)
+    except Exception as e:
+        return("Error: {0}. Error code is {1}".format(e, e.args[0]))
+    finally:
+        connection.close()
+
+# Function to get a users name from their userID
+def getUserNameFromID(userID):
+    connection = makeConnection()
+    try:
+        with connection.cursor() as cursor:
+            sql = ("SELECT name FROM users WHERE ID = {0}")
             cursor.execute(sql.format(userID))
             name = cursor.fetchone()
             return(name)
@@ -190,12 +200,7 @@ def getUserName(userID):
 
 # Function to get the name of a chat
 def getChatName(chatID):
-    connection = pymysql.connect(host = "localhost",
-                                user = "root",
-                                password = "password",
-                                db = "comsciproj",
-                                charset = "utf8mb4",
-                                cursorclass = pymysql.cursors.DictCursor)
+    connection = makeConnection()
     try:
         with connection.cursor() as cursor:
             sql = ("SELECT name FROM chats WHERE ID = '{0}'")
@@ -209,18 +214,16 @@ def getChatName(chatID):
 
 # Function to get the all the memberID's associated with a chat
 def getMemberIDs(chatID):
-    connection = pymysql.connect(host = "localhost",
-                                user = "root",
-                                password = "password",
-                                db = "comsciproj",
-                                charset = "utf8mb4",
-                                cursorclass = pymysql.cursors.DictCursor)
+    connection = makeConnection()
     try:
         with connection.cursor() as cursor:
             sql = ("SELECT ID FROM members WHERE chatID = '{0}'")
             cursor.execute(sql.format(chatID))
             memberIDs = cursor.fetchall()
-            return(memberIDs)
+            memberIDList = []
+            for i in memberIDs:
+                memberIDList.append(i['ID'])
+            return(memberIDList)
     except Exception as e:
         return("Error: {0}. Error code is {1}".format(e, e.args[0]))
     finally:
@@ -228,12 +231,7 @@ def getMemberIDs(chatID):
 
 # Function to get the userID of a given email address
 def getUserID(email):
-    connection = pymysql.connect(host = "localhost",
-                                user = "root",
-                                password = "password",
-                                db = "comsciproj",
-                                charset = "utf8mb4",
-                                cursorclass = pymysql.cursors.DictCursor)
+    connection = makeConnection()
     try:
         with connection.cursor() as cursor:
             sql = ("SELECT ID FROM users WHERE email = '{0}'")
@@ -246,15 +244,10 @@ def getUserID(email):
         connection.close()
 
 def getChats(userID):
-    connection = pymysql.connect(host = "localhost",
-                                user = "root",
-                                password = "password",
-                                db = "comsciproj",
-                                charset = "utf8mb4",
-                                cursorclass = pymysql.cursors.DictCursor)
+    connection = makeConnection()
     try:
         with connection.cursor() as cursor:
-            sql = ("SELECT chats.name FROM chats INNER JOIN members ON chats.ID = members.chatID WHERE userID = {0}")
+            sql = ("SELECT chats.name, chats.ID FROM chats INNER JOIN members ON chats.ID = members.chatID WHERE userID = {0}")
             cursor.execute(sql.format(userID))
             return(cursor.fetchall())
     except Exception as e:
@@ -262,48 +255,65 @@ def getChats(userID):
     finally:
         connection.close()
 
-# Function to return the last n messages sent in a chat
-def getRecentMessages(chatID, userID):
+def getChatNameID(email):
+    connection = makeConnection()
     try:
-        # Use checkChatPrivileges to see if user is allowed to access specified chat
-        memberID = checkChatPrivileges(userID, chatID)
-        if memberID != False:
-            try:
-                with connection.cursor() as cursor:
-                    # Get all the memberID's associated with that chat, to
-                    # search the table for all messages to that chat
-                    allMembers = getMemberIDs(chatID)
-                    # Select the 25 most recent entries to the table where the
-                    # memberID is of allMembers list
-                    sql = ("SELECT ID, content, ts, memberID FROM messages WHERE memberID IN ('{0}') ORDER BY ID DESC LIMIT 25")
-                    cursor.execute((sql.format(allMembers).replace("[", "").replace("]", "")))
-                    messages = cursor.fetchall()
-                    return(messages)
-            except Exception as e:
-                return("Error: {0}. Error code is {1}".format(e, e.args[0]))
-            finally:
-                connection.close()
+        with connection.cursor() as cursor:
+            sql = ("SELECT chats.name, chats.ID FROM chats INNER JOIN members ON chats.ID = members.chatID INNER JOIN users ON users.ID = members.userID WHERE users.email = '{0}'")
+            cursor.execute(sql.format(email))
+            return(cursor.fetchall())
+    except Exception as e:
+        return("Error: {0}. Error code is {1}".format(e, e.args[0]))
+    finally:
+        connection.close()
+
+# Function to return the last n messages sent in a chat
+def getRecentMessages(chatID):
+    try:
+        connection = makeConnection()
+        with connection.cursor() as cursor:
+            # Get all the memberID's associated with that chat, to
+            # search the table for all messages to that chat
+            allMembers = str(getMemberIDs(chatID))
+            # Select the 25 most recent entries to the table where the
+            # memberID is of allMembers list
+            sql = ("SELECT ID, content, ts, memberID FROM messages WHERE memberID IN ({0}) ORDER BY ID DESC LIMIT 25")
+            cursor.execute((sql.format(allMembers).replace("[", "").replace("]", "")))
+            messages = cursor.fetchall()
+            if messages != ():
+                return(messages)
+            else:
+                return(False)
+    except Exception as e:
+        return("Error: {0}. Error code is {1}".format(e, e.args[0]))
+    finally:
+        connection.close()
+
+# Function to add new user to database
+def addNewUser(userID, email, name, password, salt):
+    try:
+        isAdmin = checkAdmin(userID)
+        if isAdmin == True:
+            setUserInfo(email, name, password, salt)
+            return(True)
         else:
-            return(False)
+            return(isAdmin)
     except Exception as e:
         return("Error: {0}. Error code is {1}".format(e, e.args[0]))
 
-# Function to add new user to database
-def addNewUser(userID, email, name, password, salt, chats):
+# Function to add a new chat to the database.
+def addNewChat(name):
     try:
-        chatPrivs = checkChatPrivileges(userID, chatID)
-        if chatPrivs != False:
-            isAdmin = checkAdmin(userID)
-            if isAdmin == True:
-                setUserInfo(email, name, password, salt)
-                if len(chats) > 0:
-                    newUserID = getUserID(email)
-                    setPrivileges(newUserID, chats)
-                else:
-                    return("No chats specified, user is a member of 0 chats")
-            else:
-                return(isAdmin)
-        else:
-            return(chatPrivs)
+        connection = makeConnection()
+        with connection.cursor() as cursor:
+            sql = ("INSERT INTO chats (name) VALUES ('{0}')")
+            cursor.execute(sql.format(name))
+        connection.commit()
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT LAST_INSERT_ID()")
+            chatID = cursor.fetchone()['LAST_INSERT_ID()']
+            return(chatID)
     except Exception as e:
         return("Error: {0}. Error code is {1}".format(e, e.args[0]))
+    finally:
+        connection.close()
